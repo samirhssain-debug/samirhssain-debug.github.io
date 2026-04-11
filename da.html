@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>شاشة المسجد</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    color: white;
+    text-align: center;
+    height: 100vh;
+    overflow: hidden;
+    background: url('https://images.unsplash.com/photo-1542816417-0983c9c9ad53') no-repeat center center/cover;
+}
+
+/* طبقة تغميق */
+.overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.55);
+    top: 0;
+    left: 0;
+}
+
+/* الشريط العلوي */
+.top-bar {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 20px;
+    font-size: 18px;
+    background: rgba(0,0,0,0.4);
+}
+
+/* الساعة */
+.clock {
+    font-size: 60px;
+    margin-top: 40px;
+    font-weight: bold;
+}
+
+/* الصلاة الحالية */
+.prayer-box {
+    margin-top: 20px;
+    font-size: 28px;
+}
+
+/* الأذكار */
+.adhkar {
+    position: absolute;
+    bottom: 20px;
+    width: 100%;
+    font-size: 22px;
+    opacity: 0.9;
+}
+
+/* أوقات الصلاة */
+.times {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.time-box {
+    background: rgba(255,255,255,0.15);
+    padding: 10px 15px;
+    border-radius: 10px;
+    min-width: 80px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="overlay"></div>
+
+<div class="top-bar">
+    <div id="date"></div>
+    <div>شاشة المسجد</div>
+</div>
+
+<div class="clock" id="clock">00:00:00</div>
+
+<div class="prayer-box" id="currentPrayer">
+    الصلاة القادمة: --
+</div>
+
+<div class="times">
+    <div class="time-box">الفجر<br>05:10</div>
+    <div class="time-box">الظهر<br>12:30</div>
+    <div class="time-box">العصر<br>15:45</div>
+    <div class="time-box">المغرب<br>18:10</div>
+    <div class="time-box">العشاء<br>19:30</div>
+</div>
+
+<div class="adhkar" id="adhkar">
+سبحان الله • الحمد لله • لا إله إلا الله • الله أكبر
+</div>
+
+<script>
+// الساعة
+function updateClock() {
+    let now = new Date();
+    document.getElementById("clock").innerHTML =
+        now.toLocaleTimeString('ar-MA');
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// التاريخ
+let d = new Date();
+document.getElementById("date").innerHTML =
+    d.toLocaleDateString('ar-MA');
+
+// تغيير الأذكار
+let adhkarList = [
+    "سبحان الله",
+    "الحمد لله",
+    "لا إله إلا الله",
+    "الله أكبر",
+    "أستغفر الله"
+];
+
+let i = 0;
+setInterval(() => {
+    document.getElementById("adhkar").innerHTML = adhkarList[i];
+    i = (i + 1) % adhkarList.length;
+}, 4000);
+
+// مثال للصلاة القادمة (ثابتة دابا)
+document.getElementById("currentPrayer").innerText =
+    "الصلاة القادمة: المغرب 18:10";
+</script>
+
+</body>
+</html>
