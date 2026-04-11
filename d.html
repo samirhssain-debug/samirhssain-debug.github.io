@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>شاشة المسجد</title>
+
+<style>
+body{
+    margin:0;
+    font-family: Arial;
+    color:white;
+    overflow:hidden;
+}
+
+/* الخلفية */
+.bg{
+    position:fixed;
+    width:100%;
+    height:100%;
+    background:url('https://images.unsplash.com/photo-1609599006353-e629aaabfeae') no-repeat center center/cover;
+    filter:brightness(0.45);
+    z-index:-1;
+}
+
+/* الهيكل */
+.container{
+    display:flex;
+    flex-direction:column;
+    height:100vh;
+}
+
+/* الأعلى */
+.top{
+    display:flex;
+    justify-content:space-between;
+    padding:12px 18px;
+    background:rgba(0,0,0,0.4);
+    font-size:18px;
+}
+
+/* الوسط */
+.center{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+}
+
+/* الساعة */
+.clock{
+    font-size:80px;
+    font-weight:bold;
+}
+
+/* أوقات الصلاة */
+.prayers{
+    margin-top:20px;
+    background:rgba(0,0,0,0.5);
+    padding:12px 18px;
+    border-radius:12px;
+    font-size:15px;
+    width:200px;
+}
+
+.prayers div{
+    display:flex;
+    justify-content:space-between;
+    padding:2px 0;
+}
+
+/* الأذكار */
+.adhkar{
+    background:rgba(0,0,0,0.65);
+    padding:8px;
+    overflow:hidden;
+    white-space:nowrap;
+}
+
+.adhkar span{
+    display:inline-block;
+    padding-left:100%;
+    animation: move 18s linear infinite;
+}
+
+@keyframes move{
+    0%{transform:translateX(0);}
+    100%{transform:translateX(-100%);}
+}
+</style>
+</head>
+
+<body>
+
+<div class="bg"></div>
+
+<div class="container">
+
+    <div class="top">
+        <div>🕌 مسجد النور</div>
+        <div id="clock">--:--:--</div>
+    </div>
+
+    <div class="center">
+
+        <div class="clock" id="mainTime">00:00</div>
+
+        <div class="prayers">
+            <div><span>الفجر</span><span>05:10</span></div>
+            <div><span>الظهر</span><span>13:20</span></div>
+            <div><span>العصر</span><span>17:00</span></div>
+            <div><span>المغرب</span><span>19:10</span></div>
+            <div><span>العشاء</span><span>20:30</span></div>
+        </div>
+
+    </div>
