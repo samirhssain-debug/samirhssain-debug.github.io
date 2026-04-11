@@ -1,0 +1,273 @@
+<!DOCTYPE html><html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mosque Ultra Pro MAX+</title><style>
+body{
+margin:0;
+font-family:Arial;
+background:#000;
+color:#fff;
+overflow:hidden;
+transition:0.5s;
+}
+
+body.dark{background:#000;}
+body.green{background:#001a10;}
+body.blue{background:#001427;}
+
+#bg{
+position:fixed;
+width:100%;
+height:100%;
+object-fit:cover;
+z-index:-2;
+opacity:0.35;
+}
+
+/* TOP CENTER MOSQUE */
+.top{
+display:flex;
+justify-content:center;
+align-items:center;
+position:relative;
+padding:10px;
+}
+.mosque-name{
+font-size:26px;
+font-weight:bold;
+text-align:center;
+}
+.menu{
+position:absolute;
+left:10px;
+font-size:28px;
+cursor:pointer;
+}
+
+.info{
+display:flex;
+justify-content:space-between;
+padding:0 15px;
+font-size:14px;
+opacity:0.85;
+}
+
+.clock{
+text-align:center;
+font-size:70px;
+color:#00ffcc;
+}
+
+/* TICKER */
+.ticker{
+position:fixed;
+bottom:0;
+width:100%;
+background:#111;
+overflow:hidden;
+white-space:nowrap;
+}
+.ticker span{
+display:inline-block;
+padding-left:100%;
+animation:scroll 20s linear infinite;
+}
+@keyframes scroll{
+0%{transform:translateX(0);}
+100%{transform:translateX(-100%);}
+}
+
+/* PRAYERS */
+.prayers{
+display:flex;
+justify-content:space-around;
+flex-wrap:wrap;
+padding:10px;
+}
+.prayer{
+padding:10px;
+background:rgba(255,255,255,0.08);
+border-radius:10px;
+min-width:80px;
+text-align:center;
+}
+.active{
+background:#00ffcc;
+color:#000;
+transform:scale(1.1);
+}
+
+/* IQAMA */
+.iqamaBox{
+text-align:center;
+color:#ffd700;
+font-size:20px;
+margin-top:5px;
+}
+
+/* COUNTDOWN */
+.next,.countdown{
+text-align:center;
+margin-top:6px;
+}
+.countdown{color:#ff4d4d;font-size:26px;}
+
+/* JUMUAH */
+.jumuah{
+text-align:center;
+margin-top:10px;
+font-size:18px;
+color:#ffcc00;
+}
+
+/* SETTINGS */
+.settings{
+position:fixed;
+left:-100%;
+top:0;
+width:90%;
+height:100%;
+background:#111;
+padding:15px;
+overflow:auto;
+transition:0.4s;
+z-index:10000;
+}
+
+.settings input,select{
+width:100%;
+padding:10px;
+margin:6px 0;
+border-radius:8px;
+border:none;
+}
+
+.fab{
+position:fixed;
+bottom:10px;
+padding:10px;
+border-radius:10px;
+background:#00ffcc;
+cursor:pointer;
+}
+.full{left:10px;}
+.theme{right:10px;}
+
+</style></head><body><img id="bg"><div class="top">
+<div class="menu" onclick="toggleSettings()">☰</div>
+<div class="mosque-name" id="mosqueName"></div>
+</div><div class="info">
+<div id="date"></div>
+<div id="hijri"></div>
+</div><div class="clock" id="clock"></div><div class="next" id="next"></div>
+<div class="countdown" id="countdown"></div>
+<div class="iqamaBox" id="iqama"></div>
+<div class="jumuah" id="jumuah"></div><div class="prayers">
+<div class="prayer" id="Fajr"></div>
+<div class="prayer" id="Dhuhr"></div>
+<div class="prayer" id="Asr"></div>
+<div class="prayer" id="Maghrib"></div>
+<div class="prayer" id="Isha"></div>
+</div><div class="ticker"><span id="tickerText">سبحان الله • الحمد لله • لا إله إلا الله • الله أكبر • </span></div><div class="fab full" onclick="goFull()">⛶</div>
+<div class="fab theme" onclick="changeTheme()">🎨</div><div class="settings" id="settings">
+<h3>⚙️ ULTRA PRO MAX+</h3><input id="mosqueInput" placeholder="اسم المسجد">
+<input id="cityInput" placeholder="المدينة"><input id="iqamaInput" placeholder="مدة الإقامة (دقائق)">
+<input id="jumuahInput" placeholder="وقت صلاة الجمعة"><select id="themeSelect">
+<option value="dark">Dark</option>
+<option value="green">Green</option>
+<option value="blue">Blue</option>
+</select><button onclick="saveSettings()">حفظ</button>
+
+</div><script>
+
+let mosque = localStorage.getItem("mosque") || "مسجد النور";
+document.getElementById("mosqueName").innerText = mosque;
+
+/* CLOCK */
+setInterval(()=>{
+let d=new Date();
+document.getElementById("clock").innerText=
+String(d.getHours()).padStart(2,"0")+":"+
+String(d.getMinutes()).padStart(2,"0")+":"+
+String(d.getSeconds()).padStart(2,"0");
+},1000);
+
+/* DATE DAY MONTH */
+function updateDate(){
+let d=new Date();
+let options={weekday:"long",day:"numeric",month:"long"};
+document.getElementById("date").innerText=d.toLocaleDateString("ar-MA",options);
+}
+updateDate();
+
+/* PRAYERS (DEMO TIMES) */
+let times={Fajr:"05:10",Dhuhr:"13:30",Asr:"16:45",Maghrib:"19:10",Isha:"20:30"};
+
+Object.keys(times).forEach(p=>{
+document.getElementById(p).innerText=times[p];
+});
+
+/* IQAMA */
+function updateIqama(){
+let iq=parseInt(localStorage.getItem("iqama")||"10");
+document.getElementById("iqama").innerText="⏳ الإقامة: " + iq + " دقيقة بعد الأذان";
+}
+updateIqama();
+
+/* NEXT + COUNTDOWN */
+function toMin(t){let [h,m]=t.split(":");return +h*60+ +m;}
+
+setInterval(()=>{
+let now=new Date();
+let cur=now.getHours()*60+now.getMinutes();
+
+let list=[
+{n:"الفجر",t:times.Fajr},
+{n:"الظهر",t:times.Dhuhr},
+{n:"العصر",t:times.Asr},
+{n:"المغرب",t:times.Maghrib},
+{n:"العشاء",t:times.Isha}
+];
+
+let next=list.find(p=>toMin(p.t)>cur);
+
+if(next){
+document.getElementById("next").innerText="الصلاة القادمة: "+next.n;
+let rem=toMin(next.t)-cur;
+let h=Math.floor(rem/60);
+let m=rem%60;
+document.getElementById("countdown").innerText="⏳ "+h+":"+String(m).padStart(2,"0");
+}
+
+/* JUMUAH */
+let d=new Date().getDay();
+if(d===5){
+document.getElementById("jumuah").innerText="🕌 اليوم صلاة الجمعة";
+}
+
+},1000);
+
+function goFull(){document.documentElement.requestFullscreen();}
+function changeTheme(){
+let themes=["dark","green","blue"];
+let cur=document.body.className;
+let i=themes.indexOf(cur);
+let next=themes[(i+1)%themes.length];
+document.body.className=next;
+}
+
+function toggleSettings(){
+let s=document.getElementById("settings");
+s.style.left=(s.style.left==="0px")?"-100%":"0px";
+}
+
+function saveSettings(){
+localStorage.setItem("mosque",mosqueInput.value);
+localStorage.setItem("iqama",iqamaInput.value);
+localStorage.setItem("jumuah",jumuahInput.value);
+location.reload();
+}
+
+</script></body>
+</html>
