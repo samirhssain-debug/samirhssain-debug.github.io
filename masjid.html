@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mosque Ultra Pro MAX</title>
+
+<style>
+body{
+margin:0;
+font-family:Arial;
+background:#000;
+color:#fff;
+overflow:hidden;
+transition:0.5s;
+}
+
+/* THEMES */
+body.dark{background:#000;}
+body.green{background:#001a10;}
+body.blue{background:#001427;}
+
+/* BG */
+#bg{
+position:fixed;
+width:100%;
+height:100%;
+object-fit:cover;
+z-index:-2;
+opacity:0.35;
+}
+
+/* ADHAN FULLSCREEN */
+#adhanScreen{
+position:fixed;
+top:0;left:0;
+width:100%;height:100%;
+background:radial-gradient(circle,#00ffcc33,#000);
+display:none;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+z-index:9999;
+animation:pulse 2s infinite;
+}
+
+#adhanScreen h1{
+font-size:40px;
+color:#00ffcc;
+}
+
+@keyframes pulse{
+0%{transform:scale(1);}
+50%{transform:scale(1.05);}
+100%{transform:scale(1);}
+}
+
+/* TOP */
+.top{
+display:flex;
+justify-content:space-between;
+padding:10px;
+}
+
+.menu{font-size:28px;cursor:pointer;}
+.mosque-name{font-size:22px;font-weight:bold;}
+
+/* INFO */
+.info{
+display:flex;
+justify-content:space-between;
+padding:0 15px;
+font-size:14px;
+opacity:0.8;
+}
+
+/* CLOCK */
+.clock{
+text-align:center;
+font-size:80px;
+color:#00ffcc;
+}
+
+/* PRAYERS */
+.prayers{
+display:flex;
+justify-content:space-around;
+margin-top:15px;
+flex-wrap:wrap;
+}
+
+.prayer{
+padding:10px;
+background:rgba(255,255,255,0.08);
+border-radius:10px;
+min-width:70px;
+text-align:center;
+}
+
+.active{
+background:#00ffcc;
+color:#000;
+transform:scale(1.1);
+}
+
+/* COUNTDOWN */
+.next,.countdown,.iqama{
+text-align:center;
+margin-top:8px;
+}
+
+.countdown{color:#ff4d4d;font-size:28px;}
+.iqama{color:#ffd700;font-size:26px;}
+
+/* SETTINGS PANEL */
+.settings{
+position:fixed;
+left:-100%;
+top:0;
+width:90%;
+height:100%;
+background:#111;
+padding:15px;
+overflow:auto;
+transition:0.4s;
+z-index:10000;
+}
+
+.settings input,select{
+width:100%;
+padding:10px;
+margin:6px 0;
+border-radius:8px;
+border:none;
+}
+
+/* BUTTONS */
+.fab{
+position:fixed;
+bottom:10px;
+padding:10px;
+border-radius:10px;
+background:#00ffcc;
+cursor:pointer;
+}
+
+.full{left:10px;}
+.theme{right:10px;}
+</style>
+</head>
+
+<body>
+
+<img id="bg">
+
+<audio id="adhanSound" src="https://www.islamcan.com/audio/adhan/azan1.mp3"></audio>
+
+<!-- ADHAN SCREEN -->
+<div id="adhanScreen">
+<h1>🕌 حان وقت الصلاة</h1>
+<p id="adhanText"></p>
+</div>
+
+<div class="top">
+<div class="menu" onclick="toggleSettings()">☰</div>
+<div class="mosque-name" id="mosqueName"></div>
+</div>
+
+<div class="info">
+<div id="date"></div>
+<div id="hijri"></div>
+</div>
+
+<div class="clock" id="clock"></div>
+
+<div class="next" id="next"></div>
+<div class="countdown" id="countdown"></div>
+<div class="iqama" id="iqama"></div>
+
+<div class="prayers">
+<div class="prayer" id="Fajr"></div>
+<div class="prayer" id="Dhuhr"></div>
+<div class="prayer" id="Asr"></div>
+<div class="prayer" id="Maghrib"></div>
+<div class="prayer" id="Isha"></div>
+</div>
+
+<div class="fab full" onclick="goFull()">⛶</div>
+<div class="fab theme" onclick="changeTheme()">🎨</div>
+
+<!-- SETTINGS -->
+<div class="settings" id="settings">
+<h3>⚙️ ULTRA PRO MAX PANEL</h3>
+
+<input id="mosqueInput" placeholder="اسم المسجد">
+<input id="cityInput" placeholder="المدينة">
+
+<select id="adhanToggle">
+<option value="on">🔊 الأذان ON</option>
+<option value="off">🔇 OFF</option>
+</select>
+
+<select id="themeSelect">
+<option value="dark">Dark</option>
+<option value="green">Green</option>
+<option value="blue">Blue</option>
+</select>
+
+<button onclick="useGPS()">📍 تحديد المدينة تلقائياً</button>
+<button onclick="requestNotif()">🔔 تفعيل الإشعارات</button>
+<input id="bgInput" type="file">
+
+<button onclick="saveSettings()">حفظ</button>
+</div>
+
+<script>
+
+let mosque = localStorage.getItem("mosque") || "مسجد النور";
+let city = localStorage.getItem("city") || "Fes";
+let adhanOn = localStorage.getItem("adhan") || "on";
+
+document.body.className = localStorage.getItem("theme") || "dark";
+document.getElementById("mosqueName").innerText = mosque;
+
+/* CLOCK */
+setInterval(()=>{
+let d=new Date();
+document.getElementById("clock").innerText =
+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")+":"+String(d.getSeconds()).padStart(2,"0");
+},1000);
+
+/* DATE */
+function updateDate(){
+let d=new Date();
+document.getElementById("date").innerText=d.toLocaleDateString("ar-MA");
+}
+updateDate();
+
+/* HIJRI */
+async function loadHijri(){
+let res = await fetch("https://api.aladhan.com/v1/gToH");
+let data = await res.json();
+document.getElementById("hijri").innerText =
+"📅 "+data.data.hijri.date;
+}
+loadHijri();
+
+/* PRAYERS */
+let times={};
+
+async function load(){
+let res = await fetch(`https://api.aladhan.com/v1/timingsByCity?city=${city}&country=MA&method=2`);
+let data = await res.json();
+times = data.data.timings;
+
+["Fajr","Dhuhr","Asr","Maghrib","Isha"].forEach(p=>{
+document.getElementById(p).innerText = times[p];
+});
+
+findNext();
+}
+load();
+
+/* NEXT PRAYER */
+function toMin(t){
+let [h,m]=t.split(":");
+return +h*60+ +m;
+}
+
+let currentTimer;
+
+function findNext(){
+clearInterval(currentTimer);
+
+currentTimer=setInterval(()=>{
+let now=new Date();
+let cur = now.getHours()*60+now.getMinutes();
+
+let list=[
+{n:"الفجر",t:times.Fajr},
+{n:"الظهر",t:times.Dhuhr},
+{n:"العصر",t:times.Asr},
+{n:"المغرب",t:times.Maghrib},
+{n:"العشاء",t:times.Isha}
+];
+
+let next=list.find(p=>toMin(p.t)>cur);
+
+if(next){
+document.getElementById("next").innerText="الصلاة القادمة: "+next.n;
+
+let rem=toMin(next.t)-cur;
+let m=Math.floor(rem/60);
+let s=rem%60;
+
+document.getElementById("countdown").innerText=
+"⏳ "+m+":"+String(s).padStart(2,"0");
+
+if(rem===0) triggerAdhan(next.n);
+}
+},1000);
+}
+
+/* ADHAN MAX SCREEN */
+function triggerAdhan(name){
+document.getElementById("adhanScreen").style.display="flex";
+document.getElementById("adhanText").innerText=name;
+
+if(adhanOn==="on"){
+document.getElementById("adhanSound").play().catch(()=>{});
+}
+
+sendNotif("حان وقت صلاة "+name);
+
+setTimeout(()=>{
+document.getElementById("adhanScreen").style.display="none";
+},20000);
+}
+
+/* NOTIFICATIONS */
+function requestNotif(){
+Notification.requestPermission();
+}
+
+function sendNotif(msg){
+if(Notification.permission==="granted"){
+new Notification(msg);
+}
+}
+
+/* GPS CITY */
+function useGPS(){
+navigator.geolocation.getCurrentPosition(async pos=>{
+let {latitude,longitude}=pos.coords;
+
+let res=await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=ar`);
+let data=await res.json();
+
+city=data.city || data.locality;
+localStorage.setItem("city",city);
+alert("تم تحديد المدينة: "+city);
+});
+}
+
+/* FULLSCREEN */
+function goFull(){
+document.documentElement.requestFullscreen();
+}
+
+/* THEME */
+function changeTheme(){
+let themes=["dark","green","blue"];
+let cur=document.body.className;
+let i=themes.indexOf(cur);
+let next=themes[(i+1)%themes.length];
+document.body.className=next;
+localStorage.setItem("theme",next);
+}
+
+/* SETTINGS */
+function toggleSettings(){
+let s=document.getElementById("settings");
+s.style.left=(s.style.left==="0px")?"-100%":"0px";
+}
+
+function saveSettings(){
+localStorage.setItem("mosque",mosqueInput.value);
+localStorage.setItem("city",cityInput.value);
+localStorage.setItem("adhan",adhanToggle.value);
+localStorage.setItem("theme",themeSelect.value);
+location.reload();
+}
+
+/* BG */
+document.getElementById("bgInput").addEventListener("change",e=>{
+let url=URL.createObjectURL(e.target.files[0]);
+document.getElementById("bg").src=url;
+localStorage.setItem("bg",url);
+});
+
+let bg=localStorage.getItem("bg");
+if(bg) document.getElementById("bg").src=bg;
+
+</script>
+
+</body>
+</html>
