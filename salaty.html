@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>شاشة المسجد</title>
+
+<style>
+body {
+    margin:0;
+    font-family: Arial;
+    background:#0a4d8c;
+    color:white;
+    text-align:center;
+}
+
+.top-bar {
+    display:flex;
+    justify-content:space-between;
+    padding:20px;
+}
+
+.main-clock {
+    font-size:60px;
+}
+
+#prayersRow {
+    display:flex;
+    justify-content:space-around;
+    margin-top:20px;
+}
+
+.prayer-item {
+    background:rgba(0,0,0,0.5);
+    padding:10px;
+    border-radius:10px;
+    width:18%;
+}
+
+.next {
+    border:3px solid gold;
+}
+
+.news-ticker {
+    margin-top:20px;
+    background:black;
+    padding:10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="top-bar">
+    <div class="main-clock" id="clock"></div>
+
+    <div>
+        <div id="dateHijri"></div>
+        <div id="mosqueNameDisplay">مسجد طيب</div>
+    </div>
+
+    <div>
+        <div id="nextPrayerTime"></div>
+        <div id="nextPrayerName"></div>
+    </div>
+</div>
+
+<div id="prayersRow">
+
+    <div class="prayer-item">
+        <div class="prayer-name">الفجر</div>
+        <div class="prayer-time">05:08</div>
+    </div>
+
+    <div class="prayer-item">
+        <div class="prayer-name">الظهر</div>
+        <div class="prayer-time">13:14</div>
+    </div>
+
+    <div class="prayer-item">
+        <div class="prayer-name">العصر</div>
+        <div class="prayer-time">16:45</div>
+    </div>
+
+    <div class="prayer-item">
+        <div class="prayer-name">المغرب</div>
+        <div class="prayer-time">19:42</div>
+    </div>
+
+    <div class="prayer-item">
+        <div class="prayer-name">العشاء</div>
+        <div class="prayer-time">21:00</div>
+    </div>
+
+</div>
+
+<div class="news-ticker">
+    مرحبا بكم في مسجد طيب - تقبل الله منكم
+</div>
+
+<script>
+// الساعة
+function updateClock(){
+    let now = new Date();
+    let time = now.toLocaleTimeString('ar-MA');
+    document.getElementById("clock").innerText = time;
+}
+setInterval(updateClock,1000);
+updateClock();
+
+// تحديد الصلاة القادمة
+function getNextPrayer(){
+    let now = new Date();
+
+    let prayers = [
+        {name:"الفجر", time:"05:08"},
+        {name:"الظهر", time:"13:14"},
+        {name:"العصر", time:"16:45"},
+        {name:"المغرب", time:"19:42"},
+        {name:"العشاء", time:"21:00"}
+    ];
+
+    let next = null;
+
+    prayers.forEach(p => {
+        let [h,m] = p.time.split(":");
+        let pt = new Date();
+        pt.setHours(h);
+        pt.setMinutes(m);
+        pt.setSeconds(0);
+
+        if(pt > now && !next){
+            next = p;
+        }
+    });
+
+    if(!next) next = prayers[0];
+
+    document.getElementById("nextPrayerName").innerText = next.name;
+    document.getElementById("nextPrayerTime").innerText = next.time;
+
+    // Highlight
+    document.querySelectorAll(".prayer-item").forEach(el=>el.classList.remove("next"));
+
+    document.querySelectorAll(".prayer-item").forEach(el=>{
+        if(el.querySelector(".prayer-name").innerText === next.name){
+            el.classList.add("next");
+        }
+    });
+}
+
+setInterval(getNextPrayer,1000);
+getNextPrayer();
+</script>
+
+</body>
+</html>
