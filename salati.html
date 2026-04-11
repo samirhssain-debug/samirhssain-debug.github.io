@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>شاشة المسجد</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    color: white;
+    height: 100vh;
+    overflow: hidden;
+    background: url('https://images.unsplash.com/photo-1542816417-0983c9c9ad53') no-repeat center center/cover;
+}
+
+.overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.65);
+}
+
+.container {
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+    gap: 10px;
+}
+
+/* العنوان */
+.top {
+    text-align: center;
+    font-size: 28px;
+    font-weight: bold;
+    background: rgba(0,0,0,0.4);
+    padding: 10px;
+    border-radius: 10px;
+}
+
+/* شريط الأحاديث المتحرك الجديد */
+.hadith-ticker {
+    background: rgba(255,215,0,0.15);
+    border: 2px solid #ffd700;
+    border-radius: 10px;
+    padding: 8px 0;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.hadith-text {
+    display: inline-block;
+    padding-left: 100%;
+    animation: scroll 80s linear infinite;
+    font-size: 22px;
+    font-weight: 900;
+}
+
+@keyframes scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(100%); }
+}
+
+/* الساعة */
+.clock {
+    text-align: center;
+    font-size: 80px;
+    font-weight: bold;
+    direction: ltr;
+}
+
+/* دائرة الوقت المتبقي */
+.countdown-circle {
+    width: 140px;
+    height: 140px;
+    margin: 5px auto;
+    border: 5px solid #ffd700;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.5);
+}
+
+.countdown-time {
+    font-size: 28px;
+    font-weight: 900;
+    direction: ltr;
+}
+
+.countdown-label {
+    font-size: 14px;
+    color: #ffd700;
+    margin-top: 3px;
+}
+
+/* التاريخ */
+.date {
+    text-align: center;
+    font-size: 22px;
+}
+
+/* 🔥 العرض الأفقي ديال الصلوات */
+.times {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.prayer-box {
+    flex: 1;
+    text-align: center;
+    background: rgba(255,255,255,0.10);
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+}
+
+.prayer-box.active {
+    background: rgba(255,215,0,0.20);
+    border: 2px solid #ffd700;
+}
+
+.prayer-name {
+    font-size: 26px;
+    font-weight: bold;
+}
+
+.prayer-time {
+    font-size: 22px;
+    direction: ltr;
+}
+
+.prayer-iqama {
+    font-size: 18px;
+    color: #ffd700;
+}
+
+/* الأحاديث بدل الأذكار */
+.adhkar {
+    text-align: center;
+    font-size: 24px;
+    font-weight: 900;
+    padding: 12px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 10px;
+    margin-top: auto;
+    min-height: 35px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="overlay"></div>
+
+<div class="container">
+
+    <div class="top">🕌 شاشة المسجد</div>
+
+    <!-- شريط الأحاديث المتحرك الجديد بلاصت الصلاة القادمة -->
+    <div class="hadith-ticker">
+        <div class="hadith-text" id="hadithTicker"></div>
+    </div>
+
+    <div class="clock" id="clock">00:00:00</div>
+
+    <!-- دائرة الوقت المتبقي -->
+    <div class="countdown-circle">
+        <div class="countdown-time" id="countdownTime">00:00:00</div>
+        <div class="countdown-label" id="countdownLabel">المتبقي للصلاة</div>
+    </div>
+
+    <div class="date" id="date"></div>
+
+    <!-- 🔥 الصلوات أفقي -->
+    <div class="times">
+
+        <div class="prayer-box" data-time="05:10" data-name="الفجر">
+            <div class="prayer-name">الفجر</div>
+            <div class="prayer-time">05:10</div>
+            <div class="prayer-iqama">10</div>
+        </div>
+
+        <div class="prayer-box" data-time="12:30" data-name="الظهر">
+            <div class="prayer-name">الظهر</div>
+            <div class="prayer-time">12:30</div>
+            <div class="prayer-iqama">10</div>
+        </div>
+
+        <div class="prayer-box" data-time="15:40" data-name="العصر">
+            <div class="prayer-name">العصر</div>
+            <div class="prayer-time">15:40</div>
+            <div class="prayer-iqama">10</div>
+        </div>
+
+        <div class="prayer-box" data-time="18:10" data-name="المغرب">
+            <div class="prayer-name">المغرب</div>
+            <div class="prayer-time">18:10</div>
+            <div class="prayer-iqama">10</div>
+        </div>
+
+        <div class="prayer-box" data-time="19:30" data-name="العشاء">
+            <div class="prayer-name">العشاء</div>
+            <div class="prayer-time">19:30</div>
+            <div class="prayer-iqama">10</div>
+        </div>
+
+    </div>
+
+    <div class="adhkar" id="adhkar"></div>
+
+</div>
+
+<script>
+// 30 حديث صحيح
+const hadithList = [
+    "قال رسول الله ﷺ: إنما الأعمال بالنيات وإنما لكل امرئ ما نوى",
+    "قال رسول الله ﷺ: من كان يؤمن بالله واليوم الآخر فليقل خيرا أو ليصمت",
+    "قال رسول الله ﷺ: لا يؤمن أحدكم حتى يحب لأخيه ما يحب لنفسه",
+    "قال رسول الله ﷺ: المسلم من سلم المسلمون من لسانه ويده",
+    "قال رسول الله ﷺ: من حسن إسلام المرء تركه ما لا يعنيه",
+    "قال رسول الله ﷺ: لا تغضب ولك الجنة",
+    "قال رسول الله ﷺ: اتق الله حيثما كنت وأتبع السيئة الحسنة تمحها",
+    "قال رسول الله ﷺ: الكلمة الطيبة صدقة",
+    "قال رسول الله ﷺ: تبسمك في وجه أخيك صدقة",
+    "قال رسول الله ﷺ: من لا يشكر الناس لا يشكر الله",
+    "قال رسول الله ﷺ: خيركم خيركم لأهله وأنا خيركم لأهلي",
+    "قال رسول الله ﷺ: الدين النصيحة",
+    "قال رسول الله ﷺ: من غشنا فليس منا",
+    "قال رسول الله ﷺ: الحياء شعبة من الإيمان",
+    "قال رسول الله ﷺ: لا ضرر ولا ضرار",
+    "قال رسول الله ﷺ: يسروا ولا تعسروا وبشروا ولا تنفروا",
+    "قال رسول الله ﷺ: من سلك طريقا يلتمس فيه علما سهل الله له طريقا إلى الجنة",
+    "قال رسول الله ﷺ: إذا مات الإنسان انقطع عمله إلا من ثلاث: صدقة جارية أو علم ينتفع به أو ولد صالح يدعو له",
+    "قال رسول الله ﷺ: من دل على خير فله مثل أجر فاعله",
+    "قال رسول الله ﷺ: الصلوات الخمس والجمعة إلى الجمعة كفارة لما بينهن",
+    "قال رسول الله ﷺ: من صلى البردين دخل الجنة",
+    "قال رسول الله ﷺ: من بنى مسجدا لله بنى الله له بيتا في الجنة",
+    "قال رسول الله ﷺ: خير يوم طلعت عليه الشمس يوم الجمعة",
+    "قال رسول الله ﷺ: أكثروا من الصلاة علي يوم الجمعة",
+    "قال رسول الله ﷺ: من قرأ آية الكرسي دبر كل صلاة لم يمنعه من دخول الجنة إلا الموت",
+    "قال رسول الله ﷺ: الدعاء هو العبادة",
+    "قال رسول الله ﷺ: لا حول ولا قوة إلا بالله كنز من كنوز الجنة",
+    "قال رسول الله ﷺ: من قال سبحان الله وبحمده مائة مرة حطت خطاياه",
+    "قال رسول الله ﷺ: كلمتان خفيفتان على اللسان ثقيلتان في الميزان: سبحان الله وبحمده سبحان الله العظيم",
+    "قال رسول الله ﷺ: بلغوا عني ولو آية"
+];
+
+// نحطو الأحاديث فالشريط المتحرك
+document.getElementById("hadithTicker").innerHTML = hadithList.join(" • ") + " • ";
+
+// ⏰ الساعة + العد التنازلي
+function updateClock() {
+    let now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    document.getElementById("clock").innerHTML = `${hours}:${minutes}:${seconds}`;
+
+    // التاريخ
+    document.getElementById("date").innerHTML = now.toLocaleDateString('ar-MA');
+
+    updateCountdown(now);
+}
+
+// ⏳ حساب الوقت المتبقي للصلاة
+function updateCountdown(now) {
+    const currentSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+    const boxes = document.querySelectorAll('.prayer-box');
+    let nextBox = null;
+    let nextPrayerSeconds = 0;
+
+    boxes.forEach(box => box.classList.remove('active'));
+
+    for (let box of boxes) {
+        const [h, m] = box.dataset.time.split(':').map(Number);
+        const prayerSeconds = h * 3600 + m * 60;
+
+        if (prayerSeconds > currentSeconds) {
+            nextBox = box;
+            nextPrayerSeconds = prayerSeconds;
+            break;
+        }
+    }
+
+    // إلا دازت العشاء، نحسبو للفجر ديال غدا
+    if (!nextBox) {
+        nextBox = boxes[0];
+        const [h, m] = nextBox.dataset.time.split(':').map(Number);
+        nextPrayerSeconds = (h + 24) * 3600 + m * 60;
+    }
+
+    nextBox.classList.add('active');
+
+    let diff = nextPrayerSeconds - currentSeconds;
+    if (diff < 0) diff += 24 * 3600;
+
+    const h = Math.floor(diff / 3600);
+    const m = Math.floor((diff % 3600) / 60);
+    const s = diff % 60;
+
+    document.getElementById("countdownTime").innerHTML =
+        `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    document.getElementById("countdownLabel").innerHTML = `المتبقي لـ ${nextBox.dataset.name}`;
+}
+
+setInterval(updateClock, 1000);
+updateClock();
+
+// 📿 أحاديث بدل الأذكار - كل 5 ثواني
+let i = 0;
+function showHadith() {
+    document.getElementById("adhkar").innerHTML = hadithList[i];
+    i = (i + 1) % hadithList.length;
+}
+setInterval(showHadith, 5000);
+showHadith();
+
+</script>
+
+</body>
+</html>
