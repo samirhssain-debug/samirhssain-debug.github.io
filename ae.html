@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>شاشة المسجد</title>
+
+<style>
+body{
+margin:0;
+font-family:Arial;
+background:black;
+color:white;
+overflow:hidden;
+}
+
+/* BACKGROUND */
+#bg{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+object-fit:cover;
+z-index:-2;
+filter:brightness(0.35);
+}
+
+/* TOP BAR */
+.topbar{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:10px 15px;
+background:rgba(0,0,0,0.5);
+}
+
+.menu{
+font-size:26px;
+cursor:pointer;
+}
+
+.clock{
+font-size:38px;
+font-weight:bold;
+}
+
+/* MOSQUE NAME */
+.mosque{
+text-align:center;
+font-size:24px;
+margin-top:5px;
+font-weight:bold;
+}
+
+/* MAIN LAYOUT */
+.container{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:12px;
+padding:12px;
+margin-top:10px;
+}
+
+/* PRAYER CARD */
+.card{
+background:rgba(0,0,0,0.65);
+padding:12px;
+border-radius:12px;
+text-align:center;
+}
+
+.card h3{
+margin:0;
+font-size:18px;
+color:#00d4ff;
+}
+
+.card div{
+font-size:18px;
+margin-top:5px;
+}
+
+/* COUNTDOWN */
+.countdown{
+text-align:center;
+font-size:60px;
+margin-top:10px;
+color:lime;
+font-weight:bold;
+}
+
+.red{color:red;}
+
+/* TICKER */
+.ticker{
+position:fixed;
+bottom:0;
+width:100%;
+background:rgba(0,0,0,0.7);
+overflow:hidden;
+padding:6px 0;
+}
+
+.ticker span{
+display:inline-block;
+white-space:nowrap;
+padding-left:100%;
+animation:move 18s linear infinite;
+font-size:18px;
+}
+
+@keyframes move{
+0%{transform:translateX(0);}
+100%{transform:translateX(-100%);}
+}
+
+/* SETTINGS PANEL */
+.panel{
+position:fixed;
+right:-320px;
+top:0;
+width:320px;
+height:100%;
+background:#111;
+padding:12px;
+transition:0.3s;
+overflow:auto;
+}
+
+input,button{
+width:100%;
+padding:10px;
+margin:6px 0;
+border:none;
+border-radius:6px;
+font-size:14px;
+}
+
+button{
+background:#1e90ff;
+color:white;
+cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<!-- BACKGROUND -->
+<img id="bg">
+
+<!-- TOP -->
+<div class="topbar">
+<div class="menu" onclick="toggle()">☰</div>
+<div class="clock" id="clock">00:00</div>
+</div>
+
+<!-- NAME -->
+<div class="mosque" id="mosqueName">مسجد النور</div>
+
+<!-- PRAYERS -->
+<div class="container" id="prayers"></div>
+
+<!-- COUNTDOWN -->
+<div class="countdown" id="countdown">--:--</div>
+
+<!-- TICKER -->
+<div class="ticker">
+<span>سبحان الله • الحمد لله • لا إله إلا الله • الله أكبر • أستغفر الله •</span>
+</div>
+
+<!-- SETTINGS -->
+<div class="panel" id="panel">
+<h3>الإعدادات</h3>
+
+<input id="nameInput" placeholder="اسم المسجد">
+<input id="cityInput" placeholder="المدينة (مثال: fes)">
+<input type="file" onchange="setBg(event)">
+
+<button onclick="save()">حفظ</button>
+<button onclick="load()">تحديث</button>
+</div>
+
+<script>
+/* LOAD */
+function load(){
+let d=JSON.parse(localStorage.getItem("masjid")||"{}");
+
+document.getElementById("mosqueName").innerText=d.name||"مسجد النور";
+
+if(d.bg) document.getElementById("bg").src=d.bg;
+
+fetchPrayerTimes(d.city||"fes");
+}
+load();
+
+/* SAVE */
+function save(){
+let d={
+name:nameInput.value,
+city:cityInput.value,
+bg:document.getElementById("bg").src
+};
+localStorage.setItem("masjid",JSON.stringify(d));
+load();
+}
+
+/* PRAYER TIMES */
+async function fetchPrayerTimes(city="fes"){
+try{
+let res=await fetch(`https://api.aladhan.com/v1/timingsByCity?city=${city}&country=MA&method=2`);
+let data=await res.json();
+let t=data.data.timings;
+
+let keys=["Fajr","Sunrise","Dhuhr","Asr","Maghrib","Isha"];
+let html="";
+
+keys.forEach(k=>{
+html+=`
+<div class="card">
+<h3>${k}</h3>
+<div>${t[k]}</div>
+</div>`;
+});
+
+document.getElementById("prayers").innerHTML=html;
+
+startCountdown(t.Maghrib);
+
+}catch(e){
+document.getElementById("prayers").innerHTML="<div class='card'>خطأ في تحميل المواقيت</div>";
+}
+}
+
+/* COUNTDOWN */
+function startCountdown(timeStr){
+setInterval(()=>{
+let now=new Date();
+let [h,m]=timeStr.split(":");
+
+let target=new Date();
+target.setHours(h,m,0);
+
+let diff=Math.max(0,Math.floor((target-now)/1000));
+
+let mm=Math.floor(diff/60);
+let ss=diff%60;
+
+let c=document.getElementById("countdown");
+c.innerText=mm+":"+ss;
+
+c.classList.toggle("red",diff<60);
+
+},1000);
+}
+
+/* CLOCK */
+setInterval(()=>{
+let t=new Date();
+document.getElementById("clock").innerText=
+t.getHours().toString().padStart(2,'0')+":"+
+t.getMinutes().toString().padStart(2,'0');
+},1000);
+
+/* BACKGROUND */
+function setBg(e){
+let file=e.target.files[0];
+let r=new FileReader();
+r.onload=()=>document.getElementById("bg").src=r.result;
+r.readAsDataURL(file);
+}
+
+/* PANEL */
+function toggle(){
+let p=document.getElementById("panel");
+p.style.right=(p.style.right=="0px")?"-320px":"0px";
+}
+</script>
+
+</body>
+</html>
