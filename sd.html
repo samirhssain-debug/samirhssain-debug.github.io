@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>شاشة المسجد</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    background:black;
+    color:white;
+    overflow:hidden;
+}
+
+/* الخلفية */
+#bg{
+    position:fixed;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    z-index:-1;
+    opacity:0.45;
+}
+
+/* الساعة */
+.clock{
+    font-size:75px;
+    text-align:center;
+    margin-top:10px;
+}
+
+/* مواقيت الصلاة */
+.prayers{
+    display:flex;
+    justify-content:space-around;
+    margin-top:15px;
+    font-size:22px;
+    font-weight:bold;
+}
+
+.prayer{
+    padding:5px 10px;
+    border-radius:10px;
+    background:rgba(0,0,0,0.4);
+}
+
+.active{
+    background:#00ffcc;
+    color:black;
+}
+
+/* الصلاة القادمة */
+.next{
+    text-align:center;
+    margin-top:10px;
+    font-size:28px;
+    background:rgba(0,0,0,0.6);
+    padding:10px;
+}
+
+/* عداد */
+.timer{
+    text-align:center;
+    font-size:40px;
+    margin-top:10px;
+    color:#00ffcc;
+}
+
+/* الأذكار المتحركة */
+.adhkar{
+    position:fixed;
+    bottom:10px;
+    width:100%;
+    white-space:nowrap;
+    overflow:hidden;
+    font-size:24px;
+    background:rgba(0,0,0,0.6);
+}
+
+.adhkar span{
+    display:inline-block;
+    padding-left:100%;
+    animation:move 25s linear infinite;
+}
+
+@keyframes move{
+    0%{transform:translateX(0);}
+    100%{transform:translateX(-100%);}
+}
+
+/* الإقامة */
+.count-box{
+    position:fixed;
+    top:0;left:0;
+    width:100%;height:100%;
+    display:none;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+    background:black;
+    z-index:999;
+}
+
+.count-title{font-size:50px;}
+.count-time{font-size:140px;color:#00ffcc;}
+
+/* بعد الصلاة */
+.after-prayer{
+    position:fixed;
+    top:0;left:0;
+    width:100%;height:100%;
+    display:none;
+    background:black;
+    z-index:998;
+}
+
+.after-prayer img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+</style>
+</head>
+
+<body>
+
+<img id="bg" src="https://images.unsplash.com/photo-1548013146-72479768bada">
+
+<div class="clock" id="clock"></div>
+
+<!-- الصلاة -->
+<div class="prayers">
+    <div class="prayer" id="fajr">الفجر 05:30</div>
+    <div class="prayer" id="dhuhr">الظهر 13:10</div>
+    <div class="prayer" id="asr">العصر 16:30</div>
+    <div class="prayer" id="maghrib">المغرب 19:00</div>
+    <div class="prayer" id="isha">العشاء 20:30</div>
+</div>
+
+<div class="next" id="next"></div>
+<div class="timer" id="timer"></div>
+
+<!-- الإقامة -->
+<div class="count-box" id="countBox">
+    <div class="count-title">الإقامة بعد قليل</div>
+    <div class="count-time" id="countdown">10:00</div>
+</div>
+
+<!-- بعد الصلاة -->
+<div class="after-prayer" id="afterPrayer">
+    <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9">
+</div>
+
+<!-- الأذكار -->
+<div class="adhkar">
+    <span>سبحان الله • الحمد لله • لا إله إلا الله • الله أكبر • أستغفر الله • الصلاة على النبي ﷺ •</span>
+</div>
+
+<script>
+
+/* ================= CLOCK ================= */
+function pad(n){return n<10?"0"+n:n;}
+
+setInterval(()=>{
+    let d=new Date();
+    document.getElementById("clock").innerText =
+    pad(d.getHours())+":"+pad(d.getMinutes())+":"+pad(d.getSeconds());
+
+    updateNextPrayer(d);
+},1000);
+
+/* ================= PRAYERS ================= */
+let prayers = [
+    {name:"الفجر", time:"05:30", id:"fajr"},
+    {name:"الظهر", time:"13:10", id:"dhuhr"},
+    {name:"العصر", time:"16:30", id:"asr"},
+    {name:"المغرب", time:"19:00", id:"maghrib"},
+    {name:"العشاء", time:"20:30", id:"isha"}
+];
+
+function timeToDate(t){
+    let [h,m]=t.split(":");
+    let d=new Date();
+    d.setHours(h,m,0,0);
+    return d;
+}
+
+/* الصلاة القادمة */
+function updateNextPrayer(now){
+    let next=null;
+
+    for(let p of prayers){
+        let pt=timeToDate(p.time);
+        if(pt>now){
+            next=p;
+            break;
+        }
+    }
+
+    if(!next) next=prayers[0];
+
+    document.getElementById("next").innerText =
+    "الصلاة القادمة: "+next.name;
+
+    highlight(next.id);
+
+    // عداد
+    let diff = timeToDate(next.time)-now;
+    let m=Math.floor(diff/60000);
+    let s=Math.floor((diff%60000)/1000);
+
+    document.getElementById("timer").innerText =
+    "متبقي: "+m+":"+pad(s);
+}
+
+/* تمييز الصلاة القادمة */
+function highlight(id){
+    prayers.forEach(p=>{
+        document.getElementById(p.id).classList.remove("active");
+    });
+    document.getElementById(id).classList.add("active");
+}
+
+/* ================= الإقامة (تجريبي) ================= */
+let seconds=600;
+
+function startIqama(){
+    document.getElementById("countBox").style.display="flex";
+}
+
+setInterval(()=>{
+    if(seconds>0){
+        seconds--;
+        let m=Math.floor(seconds/60);
+        let s=seconds%60;
+        document.getElementById("countdown").innerText =
+        m+":"+pad(s);
+    }
+},1000);
+
+/* تشغيل تجريبي */
+setTimeout(startIqama,8000);
+
+setTimeout(()=>{
+    document.getElementById("countBox").style.display="none";
+    document.getElementById("afterPrayer").style.display="flex";
+},20000);
+
+</script>
+
+</body>
+</html>
