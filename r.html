@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>شاشة المسجد</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    color:white;
+    background:#0a4d8c;
+    text-align:center;
+}
+
+/* Top */
+.top{
+    padding:20px;
+}
+
+.title{
+    font-size:28px;
+    font-weight:bold;
+}
+
+.clock{
+    font-size:70px;
+    font-weight:bold;
+}
+
+/* Countdown */
+.countdown{
+    font-size:20px;
+    margin-top:10px;
+    color:yellow;
+}
+
+/* Prayers */
+.prayers{
+    display:flex;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-top:30px;
+}
+
+.prayer{
+    background:rgba(255,255,255,0.15);
+    padding:15px;
+    border-radius:10px;
+    min-width:90px;
+}
+
+.active{
+    border:2px solid yellow;
+}
+
+/* Menu */
+.menu{
+    position:fixed;
+    right:10px;
+    top:10px;
+    background:white;
+    color:black;
+    padding:10px;
+    border-radius:8px;
+    cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="menu" onclick="loadManual()">⚙ إعداد</div>
+
+<div class="top">
+    <div class="title" id="mosqueName">مسجد النور</div>
+    <div class="clock" id="clock">00:00:00</div>
+    <div class="countdown" id="countdown">---</div>
+</div>
+
+<div class="prayers" id="prayers"></div>
+
+<audio id="adhanSound" src="https://www.islamcan.com/audio/adhan/azan1.mp3"></audio>
+
+<script>
+
+let city = "Nador"; // تقدر تبدلها
+let country = "MA";
+
+let prayerTimes = {};
+let nextPrayerTime = null;
+let nextPrayerName = "";
+
+/* CLOCK */
+function updateClock(){
+    let now = new Date();
+    document.getElementById("clock").innerText =
+    now.toLocaleTimeString('en-GB');
+}
+setInterval(updateClock,1000);
+updateClock();
+
+/* FETCH PRAYER TIMES */
+async function getPrayerTimes(){
+    let url = `https://api.aladhan.com/v1/timingsByCity?city=${city}&country=${country}&method=4`;
+
+    let res = await fetch(url);
+    let data = await res.json();
+
+    prayerTimes = data.data.timings;
+
+    showPrayers();
+    findNextPrayer();
+}
+
+/* SHOW PRAYERS */
+function showPrayers(){
+    let container = document.getElementById("prayers");
+    container.innerHTML = "";
+
+    for(let key in prayerTimes){
+        if(["Fajr","Dhuhr","Asr","Maghrib","Isha"].includes(key)){
+            container.innerHTML += `
+                <div class="prayer">
+                    ${key}<br>${prayerTimes[key]}
+                </div>
+            `;
+        }
+    }
+}
+
+/* FIND NEXT PRAYER */
+function findNextPrayer(){
+    let now = new Date();
+
+    let closest = null;
+
+    for(let key in prayerTimes){
+        if(["Fajr","Dhuhr","Asr","Maghrib","Isha"].includes(key)){
+            let [h,m] = prayerTimes[key].split(":");
+            let t = new Date();
+            t.setHours(h,m,0,0);
+
+            if(t > now){
+                closest = {name:key, time:t};
+                break;
+            }
+        }
+    }
+
+    if(closest){
+        nextPrayerTime = closest.time;
+        nextPrayerName = closest.name;
+        startCountdown();
+    }
+}
+
+/* COUNTDOWN */
+function startCountdown(){
+    setInterval(()=>{
+        if(!nextPrayerTime) return;
+
+        let now = new Date();
+        let diff = nextPrayerTime - now;
+
+        if(diff <= 0){
+            document.getElementById("countdown").innerText = "حان وقت الصلاة!";
+            document.getElementById("adhanSound").play();
+            getPrayerTimes(); // refresh
+            return;
+        }
+
+        let h = Math.floor(diff/1000/60/60);
+        let m = Math.floor((diff/1000/60)%60);
+        let s = Math.floor((diff/1000)%60);
+
+        document.getElementById("countdown").innerText =
+        `باقي على ${nextPrayerName}: ${h}:${m}:${s}`;
+    },1000);
+}
+
+/* MANUAL SETTINGS */
+function loadManual(){
+    let name = prompt("اسم المسجد:");
+    if(name){
+        document.getElementById("mosqueName").innerText = name;
+    }
+
+    let c = prompt("المدينة:", city);
+    if(c){
+        city = c;
+        getPrayerTimes();
+    }
+}
+
+/* START */
+getPrayerTimes();
+
+</script>
+
+</body>
+</html>
