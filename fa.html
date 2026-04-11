@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>شاشة المسجد</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    color: white;
+    height: 100vh;
+    overflow: hidden;
+    background: url('https://images.unsplash.com/photo-1542816417-0983c9c9ad53') no-repeat center center/cover;
+}
+
+.overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.70);
+}
+
+.container {
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 🔝 أذكار ثابتة */
+.top-bar{
+    text-align:center;
+    padding:10px;
+    background:rgba(0,0,0,0.6);
+    font-size:18px;
+}
+
+/* الوسط */
+.center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+}
+
+.mosque-name {
+    font-size: 32px;
+    color: gold;
+    font-weight: bold;
+}
+
+.clock {
+    font-size: 85px;
+    font-weight: bold;
+}
+
+.date {
+    font-size: 20px;
+}
+
+/* 🔵 الدوائر */
+.side-wrap {
+    position: absolute;
+    top: 50%;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    transform: translateY(-50%);
+    padding: 0 25px;
+}
+
+/* دائرة */
+.circle {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    background: rgba(255,255,255,0.08);
+    border: 2px solid gold;
+    text-align:center;
+}
+
+/* شريط داخل الدائرة */
+.marquee {
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    margin: 5px 0;
+}
+
+.marquee span {
+    display: inline-block;
+    padding-left: 100%;
+    animation: move 10s linear infinite;
+    color: gold;
+    font-weight: bold;
+}
+
+@keyframes move {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+}
+
+.circle h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.circle span {
+    font-size: 16px;
+}
+
+/* المواقيت */
+.times {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px;
+}
+
+.prayer {
+    background: rgba(255,255,255,0.1);
+    padding: 10px;
+    border-radius: 10px;
+    min-width: 80px;
+    text-align:center;
+}
+
+/* أسفل */
+.bottom {
+    background: rgba(0,0,0,0.6);
+    text-align: center;
+    padding: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="overlay"></div>
+
+<div class="container">
+
+    <!-- 🔝 الأذكار -->
+    <div class="top-bar">
+        🕌 أذكار: سبحان الله • الحمد لله • الله أكبر • أستغفر الله • لا إله إلا الله
+    </div>
+
+    <!-- الوسط -->
+    <div class="center">
+        <div class="mosque-name">🕌 مسجد النور</div>
+        <div class="clock" id="clock"></div>
+        <div class="date" id="date"></div>
+    </div>
+
+    <!-- 🔵 الدوائر -->
+    <div class="side-wrap">
+
+        <!-- الجمعة -->
+        <div class="circle">
+            <h3>الجمعة</h3>
+            <span id="jumuah">--:--</span>
+        </div>
+
+        <!-- الصلاة القادمة -->
+        <div class="circle">
+
+            <h3>الصلاة القادمة</h3>
+
+            <div class="marquee">
+                <span id="nextPrayerText">--</span>
+            </div>
+
+            <div id="countdown">--</div>
+        </div>
+
+    </div>
+
+    <!-- المواقيت -->
+    <div class="times" id="times"></div>
+
+    <!-- أسفل -->
+    <div class="bottom">
+        ذكر الله يطمئن القلوب
+    </div>
+
+</div>
+
+<script>
+
+const city = "Fes";
+const country = "MA";
+
+let prayerTimes = {};
+let nextPrayerTime = null;
+let nextPrayerName = "";
+
+/* ⏰ ساعة */
+setInterval(() => {
+    document.getElementById("clock").innerText =
+        new Date().toLocaleTimeString('ar-MA');
+}, 1000);
+
+/* 📅 تاريخ */
+document.getElementById("date").innerText =
+    new Date().toLocaleDateString('ar-MA');
+
+/* 🕌 جلب المواقيت */
+fetch(`https://api.aladhan.com/v1/timingsByCity?city=${city}&country=${country}&method=4`)
+.then(res => res.json())
+.then(data => {
+
+    prayerTimes = data.data.timings;
+
+    const keys = ["Fajr","Dhuhr","Asr","Maghrib","Isha"];
+
+    document.getElementById("jumuah").innerText = prayerTimes["Dhuhr"];
+
+    let html = "";
+
+    keys.forEach(k => {
+        html += `<div class="prayer">${k}<br>${prayerTimes[k]}</div>`;
+    });
+
+    document.getElementById("times").innerHTML = html;
+
+    updateNextPrayer();
+});
+
+/* 🟡 الصلاة القادمة */
+function updateNextPrayer() {
+
+    let now = new Date();
+
+    let list = ["Fajr","Dhuhr","Asr","Maghrib","Isha"];
+
+    for (let p of list) {
+
+        let [h,m] = prayerTimes[p].split(":");
+        let t = new Date();
+        t.setHours(h,m,0,0);
+
+        if (t > now) {
+
+            nextPrayerTime = t;
+            nextPrayerName = p;
+
+            document.getElementById("nextPrayerText").innerText =
+                "الصلاة القادمة: " + p + " " + prayerTimes[p];
+
+            return;
+        }
+    }
+}
+
+/* ⏳ عداد */
+setInterval(() => {
+
+    if (!nextPrayerTime) return;
+
+    let now = new Date();
+    let diff = nextPrayerTime - now;
+
+    let min = Math.floor(diff / 60000);
+    let sec = Math.floor((diff % 60000) / 1000);
+
+    document.getElementById("countdown").innerText =
+        `${min}د ${sec}ث`;
+
+}, 1000);
+
+</script>
+
+</body>
+</html>
