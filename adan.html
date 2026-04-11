@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مسجد النور - الأذان التلقائي</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: linear-gradient(135deg, #0a5c36, #0d7a47);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            transition: background 1s;
+        }
+        body.adhan-active {
+            background: linear-gradient(135deg, #8b0000, #c41e3a);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+      .container {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        h1 { font-size: 2.5em; margin-bottom: 10px; }
+      .status { 
+            background: rgba(0,0,0,0.3); 
+            padding: 15px; 
+            border-radius: 10px; 
+            margin: 20px 0;
+            font-size: 1.1em;
+        }
+      .times { 
+            display: grid; 
+            gap: 10px; 
+            margin: 20px 0;
+        }
+      .prayer {
+            background: rgba(255,255,255,0.15);
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.2em;
+        }
+      .prayer.next {
+            background: rgba(255,215,0,0.3);
+            border: 2px solid gold;
+            font-weight: bold;
+        }
+      .countdown {
+            font-size: 2em;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+      .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+      .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #FFD700, #FFA500);
+            border-radius: 10px;
+            transition: width 1s linear;
+            animation: shine 2s infinite;
+        }
+        @keyframes shine {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+      .marquee {
+            background: rgba(0,0,0,0.2);
+            padding: 12px;
+            border-radius: 8px;
+            margin: 15px 0;
+            overflow: hidden;
+            white-space: nowrap;
+            height: 45px;
+            display: flex;
+            align-items: center;
+        }
+      .marquee span {
+            display: inline-block;
+            animation: scroll 25s linear infinite;
+            font-size: 1.1em;
+            padding-left: 100%;
+        }
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
+        #adhanAlert {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(139,0,0,0.95);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        #adhanAlert h2 { font-size: 4em; margin-bottom: 20px; }
+        #adhanAlert button {
+            padding: 15px 40px;
+            font-size: 1.3em;
+            background: white;
+            color: #8b0000;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🕌 مسجد النور</h1>
+        <p>وجدة - الأذان التلقائي</p>
+        
+        <div class="status" id="status">
+            ⏳ جاري جلب مواقيت الصلاة...
+        </div>
+        
+        <div class="countdown" id="countdown"></div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+
+        <div class="marquee">
+            <span id="hadithText">🕌 قال رسول الله ﷺ: "من صلى البردين دخل الجنة" 🕌</span>
+        </div>
+        
+        <div class="times" id="times"></div>
+        
+        <p style="margin-top: 20px; font-size: 0.9em; opacity: 0.8;">
+            خلي هاد الصفحة محلولة باش يأذن تلقائياً
+        </p>
+    </div>
+    
+    <div id="adhanAlert">
+        <h2>🕌 الله أكبر</h2>
+        <p id="adhanName" style="font-size: 2em;"></p>
+        <button onclick="closeAdhan()">إيقاف الأذان</button>
+    </div>
+    
+    <audio id="adhanSound" src="https://download.quranicaudio.com/quran/mishaari_raashid_al_3afaasee/adhan/adhan.mp3"></audio>
+    
+    <script>
+        const CITY = 'Oujda';
+        const COUNTRY = 'Morocco';
+        let prayerTimes = {};
+        let alertShown = false;
+        let lastPrayerMinutes = 0;
+        
+        // 20 حديث صحيح عن الصلاة والذكر
+        const hadiths = [
+            'قال رسول الله ﷺ: "من صلى البردين دخل الجنة"',
+            'قال ﷺ: "الصلاة نور والصدقة برهان"',
+            'قال ﷺ: "أحب الأعمال إلى الله الصلاة على وقتها"',
+            'قال ﷺ: "العهد الذي بيننا وبينهم الصلاة فمن تركها فقد كفر"',
+            'قال ﷺ: "أول ما يحاسب به العبد يوم القيامة الصلاة"',
+            'قال ﷺ: "من حافظ على الصلوات الخمس دخل الجنة"',
+            'قال ﷺ: "بشر المشائين في الظلم إلى المساجد بالنور التام يوم القيامة"',
+            'قال ﷺ: "من توضأ فأحسن الوضوء خرجت خطاياه من جسده"',
+            'قال ﷺ: "صلاة الجماعة تفضل صلاة الفذ بسبع وعشرين درجة"',
+            'قال ﷺ: "من غدا إلى المسجد أو راح أعد الله له نزلا في الجنة"',
+            'قال ﷺ: "أقرب ما يكون العبد من ربه وهو ساجد"',
+            'قال ﷺ: "من صلى لله أربعين يوما في جماعة يدرك التكبيرة الأولى كتبت له براءتان"',
+            'قال ﷺ: "سبعة يظلهم الله في ظله يوم لا ظل إلا ظله:... ورجل قلبه معلق بالمساجد"',
+            'قال ﷺ: "من بنى لله مسجدا بنى الله له بيتا في الجنة"',
+            'قال ﷺ: "الملائكة تصلي على أحدكم ما دام في مصلاه"',
+            'قال ﷺ: "لا يزال العبد في صلاة ما كان في المسجد ينتظر الصلاة"',
+            'قال ﷺ: "من صلى العشاء في جماعة فكأنما قام نصف الليل"',
+            'قال ﷺ: "من صلى الفجر في جماعة فهو في ذمة الله"',
+            'قال ﷺ: "ركعتا الفجر خير من الدنيا وما فيها"',
+            'اللهم صل وسلم وبارك على سيدنا محمد وعلى آله وصحبه أجمعين'
+        ];
+        
+        let currentHadith = 0;
+        function rotateHadith() {
+            document.getElementById('hadithText').innerHTML = '🕌 ' + hadiths[currentHadith] + ' 🕌';
+            currentHadith = (currentHadith + 1) % hadiths.length;
+        }
+        
+        async function fetchPrayerTimes() {
+            try {
+                const response = await fetch(`https://api.aladhan.com/v1/timingsByCity?city=${CITY}&country=${COUNTRY}&method=2`);
+                const data = await response.json();
+                prayerTimes = data.data.timings;
+                displayTimes();
+                document.getElementById('status').innerHTML = `✅ تم جلب المواقيت: الفجر ${prayerTimes.Fajr} | الظهر ${prayerTimes.Dhuhr} | العصر ${prayerTimes.Asr} | المغرب ${prayerTimes.Maghrib} | العشاء ${prayerTimes.Isha}`;
+            } catch (e) {
+                document.getElementById('status').innerHTML = '❌ خطأ في جلب المواقيت';
+            }
+        }
+        
+        function displayTimes() {
+            const timesDiv = document.getElementById('times');
+            const prayers = [
+                {name: 'الفجر', time: prayerTimes.Fajr, key: 'Fajr'},
+                {name: 'الظهر', time: prayerTimes.Dhuhr, key: 'Dhuhr'},
+                {name: 'العصر', time: prayerTimes.Asr, key: 'Asr'},
+                {name: 'المغرب', time: prayerTimes.Maghrib, key: 'Maghrib'},
+                {name: 'العشاء', time: prayerTimes.Isha, key: 'Isha'}
+            ];
+            
+            const now = new Date();
+            const currentTime = now.getHours() * 60 + now.getMinutes();
+            let nextPrayer = null;
+            let prevPrayer = null;
+            
+            timesDiv.innerHTML = prayers.map(p => {
+                const [h, m] = p.time.split(':').map(Number);
+                const prayerMinutes = h * 60 + m;
+                const isPast = prayerMinutes <= currentTime;
+                if (isPast) prevPrayer = {...p, minutes: prayerMinutes};
+                if (!isPast &&!nextPrayer) nextPrayer = {...p, minutes: prayerMinutes};
+                
+                return `<div class="prayer ${!isPast &&!nextPrayer? 'next' : ''}">
+                    <span>${p.name}</span>
+                    <span>${p.time}</span>
+                </div>`;
+            }).join('');
+            
+            if (nextPrayer) {
+                lastPrayerMinutes = prevPrayer? prevPrayer.minutes : 0;
+                updateCountdown(nextPrayer);
+            } else {
+                const firstPrayer = prayers[0];
+                lastPrayerMinutes = prayers[4].minutes;
+                updateCountdown({...firstPrayer, minutes: firstPrayer.minutes + 1440});
+            }
+        }
+        
+        function updateCountdown(nextPrayer) {
+            const now = new Date();
+            const [h, m] = nextPrayer.time? nextPrayer.time.split(':').map(Number) : [prayerTimes.Fajr.split(':')[0], prayerTimes.Fajr.split(':')[1]];
+            let prayerDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m);
+            if (prayerDate < now) prayerDate.setDate(prayerDate.getDate() + 1);
+            
+            const diff = prayerDate - now;
+            
+            if (diff > 0) {
+                const hours = Math.floor(diff / 3600000);
+                const minutes = Math.floor((diff % 3600000) / 60000);
+                const prayerName = nextPrayer.name || 'الفجر';
+                document.getElementById('countdown').innerHTML = 
+                    `⏰ باقي ${hours} ساعة و ${minutes} دقيقة على ${prayerName}`;
+                
+                const nowMinutes = now.getHours() * 60 + now.getMinutes();
+                let totalRange = nextPrayer.minutes - lastPrayerMinutes;
+                if (totalRange < 0) totalRange += 1440;
+                let passedRange = nowMinutes - lastPrayerMinutes;
+                if (passedRange < 0) passedRange += 1440;
+                const percent = totalRange > 0? (passedRange / totalRange) * 100 : 0;
+                document.getElementById('progressFill').style.width = Math.min(Math.max(percent, 0), 100) + '%';
+            }
+        }
+        
+        function checkAdhanTime() {
+            const now = new Date();
+            const timeNow = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+            
+            const prayers = [
+                {name: 'الفجر', time: prayerTimes.Fajr},
+                {name: 'الظهر', time: prayerTimes.Dhuhr},
+                {name: 'العصر', time: prayerTimes.Asr},
+                {name: 'المغرب', time: prayerTimes.Maghrib},
+                {name: 'العشاء', time: prayerTimes.Isha}
+            ];
+            
+            prayers.forEach(p => {
+                if (p.time === timeNow &&!alertShown) {
+                    triggerAdhan(p.name);
+                }
+            });
+            
+            if (timeNow === "00:01") {
+                fetchPrayerTimes();
+            }
+            
+            displayTimes();
+        }
+        
+        function triggerAdhan(prayerName) {
+            document.body.classList.add('adhan-active');
+            document.getElementById('adhanName').textContent = `حان الآن وقت ${prayerName}`;
+            document.getElementById('adhanAlert').style.display = 'flex';
+            document.getElementById('adhanSound').play().catch(e => {});
+            alertShown = true;
+            setTimeout(() => {
+                document.getElementById('adhanAlert').style.display = 'none';
+                document.body.classList.remove('adhan-active');
+                alertShown = false;
+            }, 90000);
+        }
+        
+        function closeAdhan() {
+            document.getElementById('adhanAlert').style.display = 'none';
+            document.body.classList.remove('adhan-active');
+            document.getElementById('adhanSound').pause();
+            document.getElementById('adhanSound').currentTime = 0;
+            alertShown = false;
+        }
+        
+        fetchPrayerTimes();
+        setInterval(checkAdhanTime, 15000);
+        setInterval(rotateHadith, 12000); // كيبدل الحديث كل 12 ثانية
+        rotateHadith();
+    </script>
+</body>
+</html>
