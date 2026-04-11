@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>شاشة المسجد</title>
+
+<style>
+body{
+    margin:0;
+    font-family: Arial;
+    color:white;
+    overflow:hidden;
+}
+
+/* الخلفية */
+.bg{
+    position:fixed;
+    width:100%;
+    height:100%;
+    background:url('https://images.unsplash.com/photo-1609599006353-e629aaabfeae') no-repeat center center/cover;
+    filter: brightness(0.5);
+    z-index:-1;
+}
+
+/* المحتوى */
+.container{
+    display:flex;
+    flex-direction:column;
+    height:100vh;
+}
+
+/* الأعلى */
+.top{
+    display:flex;
+    justify-content:space-between;
+    padding:15px;
+    background:rgba(0,0,0,0.4);
+    font-size:20px;
+}
+
+/* الوسط */
+.center{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+}
+
+.clock{
+    font-size:80px;
+    font-weight:bold;
+}
+
+.prayers{
+    margin-top:20px;
+    font-size:22px;
+    line-height:1.8;
+    background:rgba(0,0,0,0.4);
+    padding:15px;
+    border-radius:10px;
+}
+
+/* الأسفل - الأذكار المتحركة */
+.adhkar{
+    background:rgba(0,0,0,0.6);
+    padding:10px;
+    white-space:nowrap;
+    overflow:hidden;
+}
+
+.adhkar span{
+    display:inline-block;
+    padding-left:100%;
+    animation: move 20s linear infinite;
+    font-size:18px;
+}
+
+@keyframes move{
+    0%{transform:translateX(0);}
+    100%{transform:translateX(-100%);}
+}
+</style>
+</head>
+
+<body>
+
+<div class="bg"></div>
+
+<div class="container">
+
+    <div class="top">
+        <div>مسجد النور</div>
+        <div id="clock">--:--:--</div>
+    </div>
+
+    <div class="center">
+        <div class="clock" id="mainTime">00:00</div>
+
+        <div class="prayers">
+            🕌 أوقات الصلاة<br><br>
+            الفجر: 05:10<br>
+            الظهر: 13:20<br>
+            العصر: 17:00<br>
+            المغرب: 19:10<br>
+            العشاء: 20:30
+        </div>
+    </div>
+
+    <div class="adhkar">
+        <span>
+            سبحان الله | الحمد لله | لا إله إلا الله | الله أكبر | استغفر الله |
+            اللهم صل على محمد ﷺ | سبحان الله وبحمده سبحان الله العظيم |
+        </span>
+    </div>
+
+</div>
+
+<script>
+function updateTime(){
+    const d = new Date();
+    let h = d.getHours().toString().padStart(2,'0');
+    let m = d.getMinutes().toString().padStart(2,'0');
+    let s = d.getSeconds().toString().padStart(2,'0');
+
+    document.getElementById("clock").innerText = h+":"+m+":"+s;
+    document.getElementById("mainTime").innerText = h+":"+m;
+}
+
+setInterval(updateTime,1000);
+updateTime();
+</script>
+
+</body>
+</html>
