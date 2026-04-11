@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>شاشة المسجد</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    background:black;
+    color:white;
+    overflow:hidden;
+}
+
+/* الخلفية */
+#bg{
+    position:fixed;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    z-index:-1;
+    opacity:0.35;
+}
+
+/* top */
+.top{
+    display:flex;
+    justify-content:space-between;
+    padding:10px 15px;
+}
+
+.menu{
+    font-size:28px;
+    cursor:pointer;
+}
+
+.mosque-name{
+    font-size:22px;
+    font-weight:bold;
+}
+
+/* الساعة */
+.clock{
+    text-align:center;
+    font-size:75px;
+    color:#00ffcc;
+    margin-top:10px;
+}
+
+/* المدينة */
+.city{
+    text-align:center;
+    opacity:0.7;
+}
+
+/* الشريط المتحرك */
+.ticker{
+    width:100%;
+    overflow:hidden;
+    background:rgba(0,0,0,0.4);
+    padding:8px 0;
+    margin-top:10px;
+}
+
+.ticker span{
+    display:inline-block;
+    white-space:nowrap;
+    animation:move 20s linear infinite;
+    font-size:18px;
+}
+
+@keyframes move{
+    0%{transform:translateX(100%)}
+    100%{transform:translateX(-100%)}
+}
+
+/* الصلاة */
+.prayers{
+    display:flex;
+    justify-content:space-around;
+    margin-top:15px;
+    font-size:18px;
+}
+
+.prayer{
+    padding:6px 8px;
+    background:rgba(255,255,255,0.08);
+    border-radius:8px;
+}
+
+.active{
+    background:#00ffcc;
+    color:black;
+}
+
+/* القادمة */
+.next{
+    text-align:center;
+    margin-top:10px;
+    font-size:24px;
+}
+
+.countdown{
+    text-align:center;
+    font-size:30px;
+    color:#ff4d4d;
+    margin-top:5px;
+}
+
+/* settings */
+.settings{
+    position:fixed;
+    top:0;
+    left:-100%;
+    width:80%;
+    height:100%;
+    background:#111;
+    padding:20px;
+    transition:0.5s;
+    z-index:999;
+}
+
+.settings input{
+    width:100%;
+    padding:10px;
+    margin:10px 0;
+    border:none;
+    border-radius:8px;
+}
+
+.settings button{
+    width:100%;
+    padding:10px;
+    background:#00ffcc;
+    border:none;
+    border-radius:8px;
+    font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<!-- الخلفية -->
+<img id="bg">
+
+<!-- top -->
+<div class="top">
+<div class="menu" onclick="toggleSettings()">☰</div>
+<div class="mosque-name" id="mosqueName">مسجد النور</div>
+</div>
+
+<div class="clock" id="clock"></div>
+<div class="city" id="cityName"></div>
+
+<!-- الشريط -->
+<div class="ticker">
+<span>سبحان الله • الحمد لله • لا إله إلا الله • الله أكبر • استغفر الله</span>
+</div>
+
+<div class="next" id="next"></div>
+<div class="countdown" id="countdown"></div>
+
+<!-- الصلاة -->
+<div class="prayers">
+<div class="prayer" id="fajr">الفجر</div>
+<div class="prayer" id="dhuhr">الظهر</div>
+<div class="prayer" id="asr">العصر</div>
+<div class="prayer" id="maghrib">المغرب</div>
+<div class="prayer" id="isha">العشاء</div>
+</div>
+
+<!-- settings -->
+<div class="settings" id="settings">
+<h3>⚙️ الإعدادات</h3>
+
+<input id="mosqueInput" placeholder="اسم المسجد">
+<input id="cityInput" placeholder="المدينة">
+
+<!-- اختيار صورة من الهاتف -->
+<input id="bgInput" type="file" accept="image/*">
+
+<button onclick="saveSettings()">حفظ</button>
+</div>
+
+<script>
+
+/* ===== بيانات ===== */
+let mosque = localStorage.getItem("mosque") || "مسجد النور";
+let city = localStorage.getItem("city") || "Fes";
+
+document.getElementById("mosqueName").innerText = mosque;
+document.getElementById("cityName").innerText = city;
+
+/* ===== اختيار الخلفية من الهاتف ===== */
+document.getElementById("bgInput").addEventListener("change", function(e){
+    let file = e.target.files[0];
+    if(!file) return;
+
+    let url = URL.createObjectURL(file);
+    document.getElementById("bg").src = url;
+
+    localStorage.setItem("bg", url);
+});
+
+/* تحميل الخلفية */
+let savedBg = localStorage.getItem("bg");
+if(savedBg){
+    document.getElementById("bg").src = savedBg;
+}
+
+/* ===== clock ===== */
+function pad(n){return n<10?"0"+n:n;}
+
+setInterval(()=>{
+let d=new Date();
+document.getElementById("clock").innerText =
+pad(d.getHours())+":"+pad(d.getMinutes())+":"+pad(d.getSeconds());
+},1000);
+
+/* ===== الصلاة ===== */
+let times={};
+
+function toMin(t){
+let [h,m]=t.split(":");
+return (+h*60)+(+m);
+}
+
+async function load(){
+let res=await fetch(`https://api.aladhan.com/v1/timingsByCity?city=${city}&country=MA&method=2`);
+let data=await res.json();
+
+times=data.data.timings;
+
+document.getElementById("fajr").innerText="الفجر "+times.Fajr;
+document.getElementById("dhuhr").innerText="الظهر "+times.Dhuhr;
+document.getElementById("asr").innerText="العصر "+times.Asr;
+document.getElementById("maghrib").innerText="المغرب "+times.Maghrib;
+document.getElementById("isha").innerText="العشاء "+times.Isha;
+
+nextPrayer();
+}
+
+load();
+
+/* next prayer */
+function nextPrayer(){
+let now=new Date();
+let cur=now.getHours()*60+now.getMinutes();
+
+let list=[
+{name:"الفجر",t:times.Fajr,id:"fajr"},
+{name:"الظهر",t:times.Dhuhr,id:"dhuhr"},
+{name:"العصر",t:times.Asr,id:"asr"},
+{name:"المغرب",t:times.Maghrib,id:"maghrib"},
+{name:"العشاء",t:times.Isha,id:"isha"}
+];
+
+let next=null;
+
+document.querySelectorAll(".prayer").forEach(p=>p.classList.remove("active"));
+
+for(let p of list){
+if(!p.t) continue;
+let tt=toMin(p.t);
+
+if(tt<=cur){
+document.getElementById(p.id).classList.add("active");
+}
+if(tt>cur && !next) next=p;
+}
+
+if(next){
+document.getElementById("next").innerText="الصلاة القادمة: "+next.name;
+
+let sec=(toMin(next.t)-cur)*60;
+count(sec);
+}
+}
+
+/* countdown */
+let c;
+function count(s){
+clearInterval(c);
+c=setInterval(()=>{
+let m=Math.floor(s/60);
+let ss=s%60;
+
+document.getElementById("countdown").innerText=
+"متبقي: "+pad(m)+":"+pad(ss);
+
+s--;
+
+if(s<0){
+clearInterval(c);
+load();
+}
+},1000);
+}
+
+/* settings */
+function toggleSettings(){
+let s=document.getElementById("settings");
+s.style.left = (s.style.left==="0px")?"-100%":"0px";
+}
+
+function saveSettings(){
+localStorage.setItem("mosque",document.getElementById("mosqueInput").value);
+localStorage.setItem("city",document.getElementById("cityInput").value);
+location.reload();
+}
+
+</script>
+
+</body>
+</html>
