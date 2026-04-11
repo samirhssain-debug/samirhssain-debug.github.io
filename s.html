@@ -1,0 +1,118 @@
+<!DOCTYPE html><html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>شاشة المسجد</title><style>
+body {
+    margin:0;
+    font-family: Arial;
+    background:#0a4d8c;
+    color:white;
+}
+
+/* Sidebar */
+.sidebar {
+    position: fixed;
+    right: -300px;
+    top: 0;
+    width: 300px;
+    height: 100%;
+    background:#123;
+    transition:0.3s;
+    padding:20px;
+}
+
+.sidebar.active {
+    right:0;
+}
+
+.menu-btn {
+    position: fixed;
+    top:20px;
+    right:20px;
+    background:#fff;
+    color:#000;
+    padding:10px;
+    border-radius:5px;
+    cursor:pointer;
+}
+
+/* Center */
+.center {
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    text-align:center;
+}
+
+.title {
+    font-size:30px;
+    margin-bottom:20px;
+}
+
+.clock {
+    font-size:80px;
+    font-weight:bold;
+}
+
+.date {
+    margin:10px;
+}
+
+/* Prayer times */
+.prayers {
+    position:absolute;
+    bottom:30px;
+    width:100%;
+    display:flex;
+    justify-content:center;
+    gap:15px;
+    flex-wrap:wrap;
+}
+
+.prayer {
+    background:rgba(255,255,255,0.1);
+    padding:15px;
+    border-radius:10px;
+    min-width:90px;
+}
+
+.active {
+    border:2px solid yellow;
+}
+
+</style></head><body><div class="menu-btn" onclick="toggleMenu()">☰</div><div class="sidebar" id="menu">
+    <h3>الإعدادات</h3>
+    <p>تغيير اسم المسجد</p>
+    <p>تغيير الخلفية</p>
+</div><div class="center">
+    <div class="title">مسجد النور</div>
+    <div class="clock" id="clock">00:00:00</div>
+    <div class="date" id="date"></div>
+</div><div class="prayers">
+    <div class="prayer">الفجر<br>05:08</div>
+    <div class="prayer">الظهر<br>13:14</div>
+    <div class="prayer">العصر<br>16:45</div>
+    <div class="prayer active">المغرب<br>19:42</div>
+    <div class="prayer">العشاء<br>20:59</div>
+</div><script>
+function updateClock(){
+    let now = new Date();
+    let h = String(now.getHours()).padStart(2,'0');
+    let m = String(now.getMinutes()).padStart(2,'0');
+    let s = String(now.getSeconds()).padStart(2,'0');
+    document.getElementById('clock').innerText = `${h}:${m}:${s}`;
+
+    document.getElementById('date').innerText = now.toLocaleDateString('ar');
+}
+
+setInterval(updateClock,1000);
+updateClock();
+
+function toggleMenu(){
+    document.getElementById('menu').classList.toggle('active');
+}
+</script></body>
+</html>
