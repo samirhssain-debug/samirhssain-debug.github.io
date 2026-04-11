@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Masjid SaaS Screen Pro</title>
+
+<style>
+body{
+    margin:0;
+    font-family: Arial, sans-serif;
+    background:black;
+    color:white;
+    overflow:hidden;
+}
+
+/* BACKGROUND */
+#bg{
+    position:fixed;
+    width:100%;
+    height:100%;
+    top:0;
+    left:0;
+    object-fit:cover;
+    z-index:-2;
+    filter:brightness(0.4);
+}
+
+/* TOP BAR */
+.topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:10px;
+    background:rgba(0,0,0,0.5);
+}
+.menu-btn{
+    font-size:24px;
+    cursor:pointer;
+}
+
+/* CLOCK */
+.clock{
+    font-size:40px;
+    font-weight:bold;
+}
+
+/* MOSQUE NAME */
+#mosqueName{
+    font-size:20px;
+    margin-top:5px;
+}
+
+/* PRAYER TABLE */
+.prayers{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    padding:10px;
+}
+.card{
+    background:rgba(0,0,0,0.6);
+    padding:10px;
+    border-radius:10px;
+}
+.card h3{
+    margin:0;
+    font-size:18px;
+}
+.card span{
+    font-size:16px;
+}
+
+/* NEXT PRAYER */
+.next{
+    text-align:center;
+    font-size:22px;
+    margin-top:10px;
+}
+
+/* COUNTDOWN */
+.countdown{
+    font-size:50px;
+    color:lime;
+    font-weight:bold;
+    text-align:center;
+}
+.red{
+    color:red;
+}
+
+/* TICKER */
+.ticker{
+    position:absolute;
+    bottom:0;
+    width:100%;
+    background:rgba(0,0,0,0.7);
+    overflow:hidden;
+}
+.ticker span{
+    display:inline-block;
+    white-space:nowrap;
+    padding-left:100%;
+    animation:move 25s linear infinite;
+}
+@keyframes move{
+    0%{transform:translateX(0);}
+    100%{transform:translateX(-100%);}
+}
+
+/* SETTINGS PANEL */
+#panel{
+    position:fixed;
+    top:0;
+    right:-300px;
+    width:300px;
+    height:100%;
+    background:#111;
+    padding:10px;
+    transition:0.3s;
+    overflow:auto;
+    z-index:10;
+}
+input,button{
+    width:100%;
+    margin:5px 0;
+    padding:8px;
+    border:none;
+    border-radius:5px;
+}
+button{
+    background:#1e90ff;
+    color:white;
+    cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<img id="bg" src="" />
+
+<!-- TOP -->
+<div class="topbar">
+<div class="menu-btn" onclick="toggle()">☰</div>
+<div class="clock" id="clock"></div>
+</div>
+
+<div id="mosqueName">مسجد النور</div>
+
+<!-- PRAYERS -->
+<div class="prayers">
+<div class="card"><h3>الفجر</h3><span id="fajr"></span></div>
+<div class="card"><h3>الشروق</h3><span id="sunrise"></span></div>
+<div class="card"><h3>الظهر</h3><span id="dhuhr"></span></div>
+<div class="card"><h3>العصر</h3><span id="asr"></span></div>
+<div class="card"><h3>المغرب</h3><span id="maghrib"></span></div>
+<div class="card"><h3>العشاء</h3><span id="isha"></span></div>
+</div>
+
+<div class="next" id="nextPrayer">الصلاة القادمة</div>
+<div class="countdown" id="countdown">--:--</div>
+
+<!-- TICKER -->
+<div class="ticker">
+<span id="tickerText">سبحان الله - الحمد لله - لا إله إلا الله - الله أكبر - أستغفر الله</span>
+</div>
+
+<!-- SETTINGS -->
+<div id="panel">
+<h3>الإعدادات</h3>
+
+<input id="nameInput" placeholder="اسم المسجد">
+<input id="cityInput" placeholder="المدينة (للمستقبل)">
+<input type="file" onchange="setBg(event)">
+
+<h4>مواقيت</h4>
+<input id="fajrI" placeholder="الفجر">
+<input id="sunriseI" placeholder="الشروق">
+<input id="dhuhrI" placeholder="الظهر">
+<input id="asrI" placeholder="العصر">
+<input id="maghribI" placeholder="المغرب">
+<input id="ishaI" placeholder="العشاء">
+
+<button onclick="save()">حفظ</button>
+<button onclick="resetData()">إعادة</button>
+</div>
+
+<script>
+function toggle(){
+    let p=document.getElementById("panel");
+    p.style.right = (p.style.right=="0px")?"-300px":"0px";
+}
+
+/* LOAD DATA */
+function load(){
+    let d=JSON.parse(localStorage.getItem("masjid")||"{}");
+
+    document.getElementById("mosqueName").innerText=d.name||"مسجد النور";
+
+    ["fajr","sunrise","dhuhr","asr","maghrib","isha"].forEach(x=>{
+        document.getElementById(x).innerText=d[x]||"--:--";
+    });
+
+    if(d.bg) document.getElementById("bg").src=d.bg;
+}
+load();
+
+/* SAVE */
+function save(){
+    let d={
+        name:nameInput.value,
+        fajr:fajrI.value,
+        sunrise:sunriseI.value,
+        dhuhr:dhuhrI.value,
+        asr:asrI.value,
+        maghrib:maghribI.value,
+        isha:ishaI.value,
+        bg:document.getElementById("bg").src
+    };
+    localStorage.setItem("masjid",JSON.stringify(d));
+    load();
+}
+
+/* BG IMAGE */
+function setBg(e){
+    let file=e.target.files[0];
+    let reader=new FileReader();
+    reader.onload=function(){
+        document.getElementById("bg").src=reader.result;
+    }
+    reader.readAsDataURL(file);
+}
+
+/* CLOCK */
+setInterval(()=>{
+    let t=new Date();
+    document.getElementById("clock").innerText=
+    t.getHours().toString().padStart(2,'0')+":"+
+    t.getMinutes().toString().padStart(2,'0');
+},1000);
+
+/* SIMPLE COUNTDOWN (NEXT PRAYER MOCK) */
+setInterval(()=>{
+    let now=new Date();
+    let next=new Date();
+    next.setHours(18,0,0); // مثال المغرب
+
+    let diff=Math.floor((next-now)/1000);
+    let m=Math.floor(diff/60);
+    let s=diff%60;
+
+    let c=document.getElementById("countdown");
+    c.innerText=m+":"+s;
+
+    if(diff<60) c.classList.add("red");
+    else c.classList.remove("red");
+
+},1000);
+
+/* RESET */
+function resetData(){
+    localStorage.removeItem("masjid");
+    location.reload();
+}
+</script>
+
+</body>
+</html>
