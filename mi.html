@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>شاشة المسجد</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    color: white;
+    height: 100vh;
+    overflow: hidden;
+    background: url('https://images.unsplash.com/photo-1542816417-0983c9c9ad53') no-repeat center center/cover;
+}
+
+.overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.70);
+}
+
+.container {
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 🔝 شريط الأذكار المتحرك */
+.ticker {
+    background: rgba(0,0,0,0.6);
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 20px;
+    padding: 8px 0;
+}
+
+.ticker span {
+    display: inline-block;
+    padding-left: 100%;
+    animation: move 25s linear infinite;
+}
+
+@keyframes move {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+}
+
+/* الوسط */
+.center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+    padding: 10px;
+}
+
+/* 🕌 اسم المسجد */
+.mosque-name {
+    text-align: center;
+    font-size: 28px;
+    font-weight: bold;
+    color: #ffd700;
+}
+
+/* ⏰ الساعة */
+.clock {
+    text-align: center;
+    font-size: 95px;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+/* 📅 التاريخ */
+.date {
+    text-align: center;
+    font-size: 20px;
+}
+
+/* 🟡 الصلاة القادمة */
+.next {
+    text-align: center;
+    font-size: 24px;
+    color: #ffd700;
+}
+
+/* 🔥 مواقيت الصلاة أفقي */
+.times {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.prayer-box {
+    flex: 1;
+    text-align: center;
+    background: rgba(255,255,255,0.10);
+    padding: 12px;
+    border-radius: 12px;
+}
+
+.prayer-name {
+    font-size: 26px;
+    font-weight: bold;
+}
+
+.prayer-time {
+    font-size: 22px;
+}
+
+/* 🔻 الأذكار */
+.bottom {
+    background: rgba(0,0,0,0.55);
+    text-align: center;
+    font-size: 22px;
+    padding: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="overlay"></div>
+
+<div class="container">
+
+    <!-- 🔝 شريط أذكار -->
+    <div class="ticker">
+        <span>
+            سبحان الله • الحمد لله • لا إله إلا الله • الله أكبر • أستغفر الله • لا حول ولا قوة إلا بالله • اللهم صل على محمد • سبحان الله وبحمده •
+        </span>
+    </div>
+
+    <div class="center">
+
+        <!-- 🕌 اسم المسجد -->
+        <div class="mosque-name">🕌 مسجد النور</div>
+
+        <!-- ⏰ الساعة -->
+        <div class="clock" id="clock">00:00:00</div>
+
+        <!-- 📅 التاريخ -->
+        <div class="date" id="date"></div>
+
+        <!-- 🟡 الصلاة القادمة -->
+        <div class="next" id="nextPrayer">الصلاة القادمة: --</div>
+
+        <!-- مواقيت الصلاة -->
+        <div class="times">
+
+            <div class="prayer-box">
+                <div class="prayer-name">الفجر</div>
+                <div class="prayer-time">05:10</div>
+            </div>
+
+            <div class="prayer-box">
+                <div class="prayer-name">الظهر</div>
+                <div class="prayer-time">12:30</div>
+            </div>
+
+            <div class="prayer-box">
+                <div class="prayer-name">العصر</div>
+                <div class="prayer-time">15:40</div>
+            </div>
+
+            <div class="prayer-box">
+                <div class="prayer-name">المغرب</div>
+                <div class="prayer-time">18:10</div>
+            </div>
+
+            <div class="prayer-box">
+                <div class="prayer-name">العشاء</div>
+                <div class="prayer-time">19:30</div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- 🔻 الأذكار -->
+    <div class="bottom" id="bottomDhikr">
+        سبحان الله • الحمد لله • لا إله إلا الله • الله أكبر
+    </div>
+
+</div>
+
+<script>
+
+// ⏰ الساعة
+function updateClock() {
+    let now = new Date();
+    document.getElementById("clock").innerHTML =
+        now.toLocaleTimeString('ar-MA');
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// 📅 التاريخ
+let d = new Date();
+document.getElementById("date").innerHTML =
+    d.toLocaleDateString('ar-MA');
+
+// 🟡 الصلاة القادمة (ثابتة حاليا)
+document.getElementById("nextPrayer").innerText =
+    "الصلاة القادمة: المغرب 18:10";
+
+// 🔻 أذكار تحت
+let dhikr = [
+    "سبحان الله",
+    "الحمد لله",
+    "لا إله إلا الله",
+    "الله أكبر",
+    "أستغفر الله",
+    "اللهم صل على محمد",
+    "لا حول ولا قوة إلا بالله"
+];
+
+let i = 0;
+setInterval(() => {
+    document.getElementById("bottomDhikr").innerText = dhikr[i];
+    i = (i + 1) % dhikr.length;
+}, 4000);
+
+</script>
+
+</body>
+</html>
