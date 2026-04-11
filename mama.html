@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>شاشة المسجد</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    color: white;
+    height: 100vh;
+    overflow: hidden;
+    background: url('https://images.unsplash.com/photo-1542816417-0983c9c9ad53') no-repeat center center/cover;
+}
+
+.overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.65);
+}
+
+.container {
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+    gap: 10px;
+}
+
+/* العنوان */
+.top {
+    text-align: center;
+    font-size: 28px;
+    font-weight: bold;
+    background: rgba(0,0,0,0.4);
+    padding: 10px;
+    border-radius: 10px;
+}
+
+/* الساعة */
+.clock {
+    text-align: center;
+    font-size: 80px;
+    font-weight: bold;
+}
+
+/* التاريخ */
+.date {
+    text-align: center;
+    font-size: 22px;
+}
+
+/* الصلاة القادمة */
+.next {
+    text-align: center;
+    font-size: 26px;
+    color: #ffd700;
+}
+
+/* 🔥 العرض الأفقي ديال الصلوات */
+.times {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    gap: 10px;
+}
+
+.prayer-box {
+    flex: 1;
+    text-align: center;
+    background: rgba(255,255,255,0.10);
+    padding: 12px;
+    border-radius: 12px;
+}
+
+.prayer-name {
+    font-size: 26px;
+    font-weight: bold;
+}
+
+.prayer-time {
+    font-size: 22px;
+}
+
+.prayer-iqama {
+    font-size: 18px;
+    color: #ffd700;
+}
+
+/* الأذكار */
+.adhkar {
+    text-align: center;
+    font-size: 24px;
+    padding: 10px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="overlay"></div>
+
+<div class="container">
+
+    <div class="top">🕌 شاشة المسجد</div>
+
+    <div class="clock" id="clock">00:00:00</div>
+    <div class="date" id="date"></div>
+    <div class="next" id="nextPrayer">الصلاة القادمة: --</div>
+
+    <!-- 🔥 الصلوات أفقي -->
+    <div class="times">
+
+        <div class="prayer-box">
+            <div class="prayer-name">الفجر</div>
+            <div class="prayer-time">05:10</div>
+            <div class="prayer-iqama">10</div>
+        </div>
+
+        <div class="prayer-box">
+            <div class="prayer-name">الظهر</div>
+            <div class="prayer-time">12:30</div>
+            <div class="prayer-iqama">10</div>
+        </div>
+
+        <div class="prayer-box">
+            <div class="prayer-name">العصر</div>
+            <div class="prayer-time">15:40</div>
+            <div class="prayer-iqama">10</div>
+        </div>
+
+        <div class="prayer-box">
+            <div class="prayer-name">المغرب</div>
+            <div class="prayer-time">18:10</div>
+            <div class="prayer-iqama">10</div>
+        </div>
+
+        <div class="prayer-box">
+            <div class="prayer-name">العشاء</div>
+            <div class="prayer-time">19:30</div>
+            <div class="prayer-iqama">10</div>
+        </div>
+
+    </div>
+
+    <div class="adhkar" id="adhkar">
+        سبحان الله • الحمد لله • لا إله إلا الله • الله أكبر
+    </div>
+
+</div>
+
+<script>
+
+// ⏰ الساعة
+function updateClock() {
+    let now = new Date();
+    document.getElementById("clock").innerHTML =
+        now.toLocaleTimeString('ar-MA');
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// 📅 التاريخ
+let d = new Date();
+document.getElementById("date").innerHTML =
+    d.toLocaleDateString('ar-MA');
+
+// 🕌 الصلاة القادمة (مثال ثابت)
+document.getElementById("nextPrayer").innerText =
+    "الصلاة القادمة: المغرب 18:10";
+
+// 📿 الأذكار المتغيرة
+let adhkarList = [
+    "سبحان الله",
+    "الحمد لله",
+    "لا إله إلا الله",
+    "الله أكبر",
+    "أستغفر الله"
+];
+
+let i = 0;
+setInterval(() => {
+    document.getElementById("adhkar").innerHTML = adhkarList[i];
+    i = (i + 1) % adhkarList.length;
+}, 4000);
+
+</script>
+
+</body>
+</html>
