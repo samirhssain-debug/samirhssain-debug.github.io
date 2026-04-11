@@ -1,0 +1,184 @@
+<script>
+    const CITY = 'Oujda';
+    const COUNTRY = 'Morocco';
+    let prayerTimes = {};
+    let alertShown = false;
+    let currentPrayerData = null;
+    let iqamaInterval = null;
+
+    const iqamaTimes = { 'الفجر': 15, 'الظهر': 10, 'العصر': 10, 'المغرب': 4, 'العشاء': 10 };
+
+    const verses = [
+        '﴿ وَمَن يُؤْمِن بِاللَّهِ يَهْدِ قَلْبَهُ ﴾',
+        '﴿ إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَّوْقُوتًا ﴾',
+        '﴿ وَأَقِيمُوا الصَّلَاةَ وَآتُوا الزَّكَاةَ ﴾',
+        '﴿ قَدْ أَفْلَحَ الْمُؤْمِنُونَ * الَّذِينَ هُمْ فِي صَلَاتِهِمْ خَاشِعُونَ ﴾'
+    ];
+
+    function updateDates() {
+        const now = new Date();
+        const gregorian = now.toLocaleDateString('ar-MA', {
+            weekday: 'long', year: 'numeric', month: 'numeric', day: 'numeric'
+        });
+        document.getElementById('gregorianDate').textContent = gregorian;
+
+        const hijri = new Intl.DateTimeFormat('ar-SA-u-ca-islamic', {
+            day: 'numeric', month: 'long', year: 'numeric'
+        }).format(now);
+        document.getElementById('hijriDate').textContent = hijri;
+    }
+
+    function updateClock() {
+        const now = new Date();
+        const time = now.toLocaleTimeString('ar-MA', {
+            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+        });
+        document.getElementById('clock').textContent = time;
+    }
+
+    async function fetchPrayerTimes() {
+        try {
+            // method=21 = وزارة الأوقاف والشؤون الإسلامية المغربية 🇲🇦
+            const res = await fetch(`https://api.aladhan.com/v1/timingsByCity?city=${CITY}&country=${COUNTRY}&method=21`);
+            const data = await res.json();
+            prayerTimes = data.data.timings;
+            document.getElementById('shuruq').textContent = `الشروق ${prayerTimes.Sunrise}`;
+            const [sh, sm] = prayerTimes.Sunrise.split(':').map(Number);
+            const duhaM = sm + 15;
+            const duhaH = sh + Math.floor(duhaM / 60);
+            document.getElementById('duha').textContent = `الضحى ${String(duhaH).padStart(2,'0')}:${String(duhaM % 60).padStart(2,'0')}`;
+            displayPrayers();
+        } catch (e) {
+            console.log('خطأ في جلب المواقيت');
+        }
+    }
+
+    function displayPrayers() {
+        const prayers = [
+            {name: 'الفجر', time: prayerTimes.Fajr},
+            {name: 'الظهر', time: prayerTimes.Dhuhr},
+            {name: 'العصر', time: prayerTimes.Asr},
+            {name: 'المغرب', time: prayerTimes.Maghrib},
+            {name: 'العشاء', time: prayerTimes.Isha}
+        ];
+
+        const now = new Date();
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        let nextPrayer = null;
+        let isInIqamaPeriod = false;
+
+        prayers.forEach(p => {
+            const [h, m] = p.time.split(':').map(Number);
+            const prayerMinutes = h * 60 + m;
+            const iqamaMinutes = prayerMinutes + iqamaTimes[p.name];
+
+            if (currentMinutes >= prayerMinutes && currentMinutes < iqamaMinutes) {
+                isInIqamaPeriod = true;
+                currentPrayerData = {name: p.name, adhanTime: prayerMinutes, iqamaTime: iqamaMinutes};
+            }
+
+            if (!nextPrayer && prayerMinutes > currentMinutes) {
+                nextPrayer = {...p, minutes: prayerMinutes};
+            }
+        });
+
+        document.getElementById('prayers').innerHTML = prayers.map(p => {
+            const isCurrent = currentPrayerData && currentPrayerData.name === p.name;
+            const isNext =!isInIqamaPeriod && nextPrayer.name === p.name;
+
+            return `<div class="prayer-box ${isCurrent? 'current' : isNext? 'next' : ''}">
+                <div class="iqama">${iqamaTimes[p.name]}'</div>
+                <div class="prayer-name">${p.name}</div>
+                <div class="prayer-time">${p.time}</div>
+            </div>`;
+        }).join('');
+
+        if (isInIqamaPeriod) {
+            showIqamaBar();
+        } else {
+            hideIqamaBar();
+            if (nextPrayer) updateNextPrayer(nextPrayer);
+        }
+    }
+
+    function showIqamaBar() {
+        document.getElementById('iqamaBar').classList.add('show');
+        document.body.classList.add('iqama-active');
+        if (!iqamaInterval) iqamaInterval = setInterval(updateIqamaBar, 1000);
+    }
+
+    function hideIqamaBar() {
+        document.getElementById('iqamaBar').classList.remove('show');
+        document.body.classList.remove('iqama-active');
+        if (iqamaInterval) { clearInterval(iqamaInterval); iqamaInterval = null; }
+    }
+
+    function updateIqamaBar() {
+        if (!currentPrayerData) return;
+        const now = new Date();
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        const currentSeconds = now.getSeconds();
+        const totalSeconds = (currentMinutes * 60 + currentSeconds) - (currentPrayerData.adhanTime * 60);
+        const iqamaTotalSeconds = (currentPrayerData.iqamaTime - currentPrayerData.adhanTime) * 60;
+        const remainingSeconds = iqamaTotalSeconds - totalSeconds;
+
+        if (remainingSeconds <= 0) {
+            hideIqamaBar();
+            currentPrayerData = null;
+            return;
+        }
+
+        const mins = Math.floor(remainingSeconds / 60);
+        const secs = remainingSeconds % 60;
+        document.getElementById('iqamaText').textContent =
+            `باقي ${mins}:${String(secs).padStart(2,'0')} دقيقة على إقامة ${currentPrayerData.name}`;
+
+        const percent = (totalSeconds / iqamaTotalSeconds) * 100;
+        const fill = document.getElementById('iqamaFill');
+        fill.style.width = percent + '%';
+
+        if (remainingSeconds < 120) fill.classList.add('warning');
+        else fill.classList.remove('warning');
+    }
+
+    function updateNextPrayer(next) {
+        const now = new Date();
+        const [h, m] = next.time.split(':').map(Number);
+        const prayerDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m);
+        const diff = prayerDate - now;
+        const hours = Math.floor(diff / 3600000);
+        const minutes = Math.floor((diff % 3600000) / 60000);
+        document.getElementById('nextPrayerInfo').innerHTML = `${hours}:${String(minutes).padStart(2,'0')}<br>المتبقي لل${next.name}`;
+    }
+
+    function checkAdhan() {
+        const now = new Date();
+        const timeNow = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        Object.entries({
+            'الفجر': prayerTimes.Fajr, 'الظهر': prayerTimes.Dhuhr, 'العصر': prayerTimes.Asr,
+            'المغرب': prayerTimes.Maghrib, 'العشاء': prayerTimes.Isha
+        }).forEach(([name, time]) => {
+            if (time === timeNow &&!alertShown) {
+                document.getElementById('adhanName').textContent = `حان الآن وقت ${name}`;
+                document.getElementById('adhanAlert').style.display = 'flex';
+                document.getElementById('adhanSound').play();
+                alertShown = true;
+                setTimeout(() => {
+                    document.getElementById('adhanAlert').style.display = 'none';
+                    alertShown = false;
+                    displayPrayers();
+                }, 90000);
+            }
+        });
+        displayPrayers();
+    }
+
+    updateDates();
+    fetchPrayerTimes();
+    setInterval(updateClock, 1000);
+    setInterval(checkAdhan, 15000);
+    setInterval(() => {
+        document.getElementById('quranVerse').textContent = verses[Math.floor(Math.random() * verses.length)];
+    }, 60000);
+    setInterval(updateDates, 3600000);
+</script>
