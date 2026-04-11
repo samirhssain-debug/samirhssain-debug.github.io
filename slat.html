@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>شاشة المسجد</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    background:black;
+    color:white;
+    overflow:hidden;
+}
+
+/* الخلفية */
+#bg{
+    position:fixed;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    z-index:-1;
+    opacity:0.35;
+}
+
+/* top bar */
+.top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:10px 15px;
+}
+
+.menu{
+    font-size:30px;
+    cursor:pointer;
+}
+
+.mosque-name{
+    font-size:22px;
+    font-weight:bold;
+}
+
+/* الساعة */
+.clock{
+    text-align:center;
+    font-size:80px;
+    color:#00ffcc;
+}
+
+/* المدينة */
+.city{
+    text-align:center;
+    opacity:0.7;
+}
+
+/* الصلاة */
+.prayers{
+    display:flex;
+    justify-content:space-around;
+    margin-top:15px;
+    font-size:20px;
+}
+
+.prayer{
+    padding:5px 8px;
+    background:rgba(0,0,0,0.4);
+    border-radius:8px;
+}
+
+.active{
+    background:#00ffcc;
+    color:black;
+}
+
+/* القادمة */
+.next{
+    text-align:center;
+    margin-top:10px;
+    font-size:26px;
+}
+
+/* الأذكار */
+.card{
+    width:80%;
+    margin:20px auto;
+    padding:20px;
+    background:rgba(255,255,255,0.06);
+    border-radius:15px;
+    text-align:center;
+    font-size:28px;
+}
+
+/* settings */
+.settings{
+    position:fixed;
+    top:0;
+    left:-100%;
+    width:80%;
+    height:100%;
+    background:#111;
+    padding:20px;
+    transition:0.5s;
+    z-index:999;
+}
+
+.settings input{
+    width:100%;
+    padding:10px;
+    margin:10px 0;
+    border:none;
+    border-radius:8px;
+}
+
+.settings button{
+    width:100%;
+    padding:10px;
+    background:#00ffcc;
+    border:none;
+    border-radius:8px;
+    font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<!-- الخلفية -->
+<img id="bg" src="">
+
+<!-- top -->
+<div class="top">
+<div class="menu" onclick="toggleSettings()">☰</div>
+<div class="mosque-name" id="mosqueName">مسجد النور</div>
+</div>
+
+<div class="clock" id="clock"></div>
+<div class="city" id="cityName"></div>
+
+<!-- الصلاة -->
+<div class="prayers">
+<div class="prayer" id="fajr">الفجر</div>
+<div class="prayer" id="dhuhr">الظهر</div>
+<div class="prayer" id="asr">العصر</div>
+<div class="prayer" id="maghrib">المغرب</div>
+<div class="prayer" id="isha">العشاء</div>
+</div>
+
+<div class="next" id="next"></div>
+
+<!-- الذكر -->
+<div class="card" id="adhkar"></div>
+
+<!-- settings -->
+<div class="settings" id="settings">
+
+<h2>⚙️ الإعدادات</h2>
+
+<input id="mosqueInput" placeholder="اسم المسجد">
+<input id="cityInput" placeholder="المدينة">
+
+<input id="bgInput" placeholder="رابط صورة الخلفية">
+
+<button onclick="saveSettings()">حفظ</button>
+
+</div>
+
+<script>
+
+/* ===== إعدادات ===== */
+let mosque = localStorage.getItem("mosque") || "مسجد النور";
+let city = localStorage.getItem("city") || "Fes";
+let bg = localStorage.getItem("bg") || "";
+
+document.getElementById("mosqueName").innerText = mosque;
+document.getElementById("cityName").innerText = city;
+
+if(bg) document.getElementById("bg").src = bg;
+
+/* ===== clock ===== */
+function pad(n){return n<10?"0"+n:n;}
+
+setInterval(()=>{
+    let d=new Date();
+    document.getElementById("clock").innerText =
+    pad(d.getHours())+":"+pad(d.getMinutes())+":"+pad(d.getSeconds());
+},1000);
+
+/* ===== مواقيت الصلاة API ===== */
+let times={};
+
+async function loadPrayerTimes(){
+    let res = await fetch(`https://api.aladhan.com/v1/timingsByCity?city=${city}&country=MA&method=2`);
+    let data = await res.json();
+
+    times = data.data.timings;
+
+    document.getElementById("fajr").innerText="الفجر "+times.Fajr;
+    document.getElementById("dhuhr").innerText="الظهر "+times.Dhuhr;
+    document.getElementById("asr").innerText="العصر "+times.Asr;
+    document.getElementById("maghrib").innerText="المغرب "+times.Maghrib;
+    document.getElementById("isha").innerText="العشاء "+times.Isha;
+
+    document.getElementById("cityName").innerText=city;
+}
+
+loadPrayerTimes();
+
+/* ===== settings ===== */
+function toggleSettings(){
+    let s=document.getElementById("settings");
+    s.style.left = (s.style.left==="0px")?"-100%":"0px";
+}
+
+function saveSettings(){
+    mosque=document.getElementById("mosqueInput").value;
+    city=document.getElementById("cityInput").value;
+    bg=document.getElementById("bgInput").value;
+
+    localStorage.setItem("mosque",mosque);
+    localStorage.setItem("city",city);
+    localStorage.setItem("bg",bg);
+
+    location.reload();
+}
+
+</script>
+
+</body>
+</html>
