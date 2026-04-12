@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mosque Ultra Pro</title>
+
+<style>
+body{
+margin:0;
+font-family:Arial;
+background:#000;
+color:#fff;
+overflow:hidden;
+transition:0.4s;
+}
+
+header{
+background:#0b3d2e;
+padding:12px;
+text-align:center;
+font-size:22px;
+font-weight:bold;
+}
+
+#main{
+padding:10px;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:8px;
+}
+
+.card{
+background:#111;
+padding:10px;
+border-radius:10px;
+text-align:center;
+}
+
+#next{
+text-align:center;
+font-size:20px;
+margin-top:10px;
+}
+
+#countdown{
+text-align:center;
+font-size:36px;
+color:#00ff99;
+margin-top:5px;
+}
+
+#ayah,#hadith{
+text-align:center;
+margin-top:8px;
+opacity:0.85;
+font-size:14px;
+}
+
+#ticker{
+position:fixed;
+bottom:0;
+width:100%;
+background:#111;
+padding:8px;
+white-space:nowrap;
+overflow:hidden;
+}
+
+#ticker span{
+display:inline-block;
+animation:move 18s linear infinite;
+}
+
+@keyframes move{
+0%{transform:translateX(100%);}
+100%{transform:translateX(-100%);}
+}
+
+/* SETTINGS */
+#btn{
+position:fixed;
+top:10px;
+left:10px;
+background:#00aa88;
+padding:8px;
+border-radius:8px;
+cursor:pointer;
+}
+
+#panel{
+position:fixed;
+top:0;
+right:-300px;
+width:300px;
+height:100%;
+background:#222;
+padding:10px;
+transition:0.3s;
+overflow:auto;
+}
+
+#panel.open{right:0;}
+
+input,select,button{
+width:100%;
+padding:8px;
+margin-top:6px;
+}
+</style>
+</head>
+
+<body>
+
+<header>🕌 Mosque Ultra Pro</header>
+
+<div id="btn">⚙️</div>
+
+<div id="panel">
+<h3>الإعدادات</h3>
+
+<label>المدينة</label>
+<input id="city" value="Nador">
+
+<label>الثيم</label>
+<select id="theme">
+<option value="dark">ليلي</option>
+<option value="light">نهاري</option>
+</select>
+
+<button onclick="applySettings()">حفظ وتحديث</button>
+</div>
+
+<div id="main">
+
+<div id="next">الصلاة القادمة: <span id="nextName">--</span></div>
+<div id="countdown">--:--:--</div>
+
+<div class="grid" id="times"></div>
+
+<div id="ayah">﴿ إن الصلاة كانت على المؤمنين كتابا موقوتا ﴾</div>
+<div id="hadith">حديث: الصلاة نور • من حافظ عليها نجا</div>
+
+</div>
+
+<div id="ticker">
+<span>سبحان الله • الحمد لله • لا إله إلا الله • الله أكبر • استغفر الله • </span>
+</div>
+
+<script>
+
+let times = {};
+let countdownInterval = null;
+
+// ===== Load Prayer Times =====
+async function load(city){
+
+localStorage.setItem("city",city);
+
+let res = await fetch(`https://api.aladhan.com/v1/timingsByCity?city=${city}&country=Morocco&method=2`);
+let json = await res.json();
+
+times = json.data.timings;
+
+document.getElementById("times").innerHTML = `
+<div class="card">الفجر<br>${times.Fajr}</div>
+<div class="card">الشروق<br>${times.Sunrise}</div>
+<div class="card">الظهر<br>${times.Dhuhr}</div>
+<div class="card">العصر<br>${times.Asr}</div>
+<div class="card">المغرب<br>${times.Maghrib}</div>
+<div class="card">العشاء<br>${times.Isha}</div>
+`;
+
+calcNext();
+}
+
+// ===== Next Prayer =====
+function calcNext(){
+
+if(countdownInterval) clearInterval(countdownInterval);
+
+let now = new Date();
+let current = now.getHours()*60 + now.getMinutes();
+
+let list = [
+["الفجر",times.Fajr],
+["الظهر",times.Dhuhr],
+["العصر",times.Asr],
+["المغرب",times.Maghrib],
+["العشاء",times.Isha]
+];
+
+for(let i=0;i<list.length;i++){
+
+let t = list[i][1].split(":");
+let mins = parseInt(t[0])*60 + parseInt(t[1]);
+
+if(mins > current){
+document.getElementById("nextName").innerText = list[i][0];
+startCountdown(mins - current);
+return;
+}
+}
+
+// fallback
+document.getElementById("nextName").innerText="الفجر القادم";
+}
+
+// ===== Countdown =====
+function startCountdown(sec){
+
+countdownInterval = setInterval(()=>{
+
+let h = Math.floor(sec/3600);
+let m = Math.floor((sec%3600)/60);
+let s = sec%60;
+
+document.getElementById("countdown").innerText =
+`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+
+sec--;
+
+if(sec < 0){
+clearInterval(countdownInterval);
+calcNext();
+}
+
+},1000);
+}
+
+// ===== Settings =====
+document.getElementById("btn").onclick=()=>{
+document.getElementById("panel").classList.add("open");
+};
+
+function applySettings(){
+
+let city = document.getElementById("city").value;
+let theme = document.getElementById("theme").value;
+
+document.body.className = theme;
+
+load(city);
+
+document.getElementById("panel").classList.remove("open");
+}
+
+// ===== Random Hadith =====
+const ahadith = [
+"من صلى البردين دخل الجنة",
+"الصلاة خير من النوم",
+"أقرب ما يكون العبد من ربه وهو ساجد",
+"الدعاء هو العبادة"
+];
+
+setInterval(()=>{
+document.getElementById("hadith").innerText =
+"حديث: " + ahadith[Math.floor(Math.random()*ahadith.length)];
+},8000);
+
+// ===== Auto Start =====
+let savedCity = localStorage.getItem("city") || "Nador";
+load(savedCity);
+
+</script>
+
+</body>
+</html>
