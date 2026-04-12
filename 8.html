@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mosque Ultra Pro MAX</title>
+
+<style>
+
+/* =========================
+   RESET
+========================= */
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial;
+}
+
+body{
+background:#000;
+color:#fff;
+overflow:hidden;
+transition:0.5s;
+}
+
+/* THEMES */
+body.dark{background:#000;}
+body.light{background:#f4f4f4;color:#000;}
+
+/* HEADER */
+header{
+background:#0b3d2e;
+padding:15px;
+text-align:center;
+font-size:24px;
+font-weight:bold;
+}
+
+/* MAIN GRID */
+#main{
+padding:10px;
+}
+
+/* PRAYER GRID */
+.grid{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:8px;
+margin-top:10px;
+}
+
+.card{
+background:#111;
+padding:10px;
+border-radius:10px;
+text-align:center;
+font-size:14px;
+}
+
+/* NEXT PRAYER */
+#next{
+text-align:center;
+margin-top:15px;
+font-size:22px;
+}
+
+#countdown{
+text-align:center;
+font-size:40px;
+color:#00ff99;
+margin-top:5px;
+}
+
+/* AYAH + HADITH */
+#ayah,#hadith{
+text-align:center;
+margin-top:10px;
+font-size:14px;
+opacity:0.85;
+}
+
+/* TICKER */
+#ticker{
+position:fixed;
+bottom:0;
+width:100%;
+background:#111;
+padding:10px;
+white-space:nowrap;
+overflow:hidden;
+}
+
+#ticker span{
+display:inline-block;
+animation:move 20s linear infinite;
+}
+
+@keyframes move{
+0%{transform:translateX(100%);}
+100%{transform:translateX(-100%);}
+}
+
+/* SETTINGS BUTTON */
+#btn{
+position:fixed;
+top:10px;
+left:10px;
+background:#00aa88;
+padding:10px;
+border-radius:8px;
+cursor:pointer;
+}
+
+/* PANEL */
+#panel{
+position:fixed;
+top:0;
+right:-320px;
+width:320px;
+height:100%;
+background:#222;
+padding:15px;
+transition:0.4s;
+overflow:auto;
+}
+
+#panel.open{right:0;}
+
+input,select,button{
+width:100%;
+padding:10px;
+margin-top:8px;
+border:none;
+border-radius:5px;
+}
+
+/* TV MODE */
+.tv header,
+.tv #btn,
+.tv #panel{
+display:none;
+}
+
+.tv #main{
+transform:scale(1.1);
+}
+
+/* SMALL TEXT */
+.small{
+font-size:12px;
+opacity:0.7;
+}
+
+</style>
+</head>
+
+<body class="dark">
+
+<header>🕌 MOSQUE ULTRA PRO MAX</header>
+
+<div id="btn">⚙️</div>
+
+<div id="panel">
+<h3>الإعدادات</h3>
+
+<label>المدينة</label>
+<input id="city" value="Nador">
+
+<label>الثيم</label>
+<select id="theme">
+<option value="dark">ليلي</option>
+<option value="light">نهاري</option>
+</select>
+
+<label>وضع الشاشة</label>
+<select id="mode">
+<option value="normal">عادي</option>
+<option value="tv">TV Mode</option>
+</select>
+
+<button onclick="applySettings()">حفظ</button>
+
+<div class="small">يتم حفظ الإعدادات تلقائياً</div>
+</div>
+
+<div id="main">
+
+<div id="next">الصلاة القادمة: <span id="nextName">--</span></div>
+<div id="countdown">--:--:--</div>
+
+<div class="grid" id="grid"></div>
+
+<div id="ayah">﴿ إن الصلاة كانت على المؤمنين كتابا موقوتا ﴾</div>
+<div id="hadith">...</div>
+
+</div>
+
+<div id="ticker">
+<span>سبحان الله • الحمد لله • لا إله إلا الله • الله أكبر • استغفر الله • </span>
+</div>
+
+<script>
+
+/* =========================
+   GLOBAL DATA
+========================= */
+
+let times = {};
+let countdownInterval;
+let adhanAudio = new Audio("https://www.islamcan.com/audio/adhan/azan1.mp3");
+
+/* =========================
+   LOAD PRAYER TIMES API
+========================= */
+
+async function load(city){
+
+localStorage.setItem("city",city);
+
+try{
+
+let res = await fetch(`https://api.aladhan.com/v1/timingsByCity?city=${city}&country=Morocco&method=2`);
+let json = await res.json();
+
+times = json.data.timings;
+
+renderTimes();
+calcNext();
+
+}catch(e){
+alert("خطأ في تحميل الأوقات");
+}
+
+}
+
+/* =========================
+   RENDER PRAYERS
+========================= */
+
+function renderTimes(){
+
+document.getElementById("grid").innerHTML=`
+<div class="card">الفجر<br>${times.Fajr}</div>
+<div class="card">الشروق<br>${times.Sunrise}</div>
+<div class="card">الظهر<br>${times.Dhuhr}</div>
+<div class="card">العصر<br>${times.Asr}</div>
+<div class="card">المغرب<br>${times.Maghrib}</div>
+<div class="card">العشاء<br>${times.Isha}</div>
+`;
+
+}
+
+/* =========================
+   NEXT PRAYER LOGIC
+========================= */
+
+function calcNext(){
+
+if(countdownInterval) clearInterval(countdownInterval);
+
+let now = new Date();
+let cur = now.getHours()*60 + now.getMinutes();
+
+let list = [
+["الفجر",times.Fajr],
+["الظهر",times.Dhuhr],
+["العصر",times.Asr],
+["المغرب",times.Maghrib],
+["العشاء",times.Isha]
+];
+
+for(let i=0;i<list.length;i++){
+
+let t = list[i][1].split(":");
+let mins = parseInt(t[0])*60 + parseInt(t[1]);
+
+if(mins > cur){
+
+document.getElementById("nextName").innerText = list[i][0];
+startCountdown(mins-cur);
+return;
+}
+
+}
+
+document.getElementById("nextName").innerText="الفجر القادم";
+
+}
+
+/* =========================
+   COUNTDOWN SYSTEM
+========================= */
+
+function startCountdown(sec){
+
+countdownInterval = setInterval(()=>{
+
+let h = Math.floor(sec/3600);
+let m = Math.floor((sec%3600)/60);
+let s = sec%60;
+
+document.getElementById("countdown").innerText =
+`${pad(h)}:${pad(m)}:${pad(s)}`;
+
+sec--;
+
+/* Trigger Adhan */
+if(sec === 0){
+adhanAudio.play();
+notify("حان وقت الصلاة");
+calcNext();
+}
+
+},1000);
+
+}
+
+function pad(n){
+return n.toString().padStart(2,'0');
+}
+
+/* =========================
+   HADITH SYSTEM
+========================= */
+
+const ahadith = [
+"من صلى البردين دخل الجنة",
+"الصلاة نور",
+"أقرب ما يكون العبد من ربه وهو ساجد",
+"الدعاء هو العبادة",
+"من ترك الصلاة فقد كفر"
+];
+
+setInterval(()=>{
+document.getElementById("hadith").innerText =
+"حديث: " + ahadith[Math.floor(Math.random()*ahadith.length)];
+},7000);
+
+/* =========================
+   NOTIFICATIONS
+========================= */
+
+function notify(msg){
+if("Notification" in window){
+Notification.requestPermission().then(p=>{
+if(p==="granted"){
+new Notification(msg);
+}
+});
+}
+}
+
+/* =========================
+   SETTINGS
+========================= */
+
+document.getElementById("btn").onclick=()=>{
+document.getElementById("panel").classList.add("open");
+};
+
+function applySettings(){
+
+let city = document.getElementById("city").value;
+let theme = document.getElementById("theme").value;
+let mode = document.getElementById("mode").value;
+
+document.body.className = theme;
+
+if(mode==="tv"){
+document.body.classList.add("tv");
+}else{
+document.body.classList.remove("tv");
+}
+
+localStorage.setItem("theme",theme);
+localStorage.setItem("mode",mode);
+
+load(city);
+
+document.getElementById("panel").classList.remove("open");
+
+}
+
+/* =========================
+   AUTO START
+========================= */
+
+let savedCity = localStorage.getItem("city") || "Nador";
+let savedTheme = localStorage.getItem("theme") || "dark";
+let savedMode = localStorage.getItem("mode") || "normal";
+
+document.body.className = savedTheme;
+if(savedMode==="tv") document.body.classList.add("tv");
+
+load(savedCity);
+
+/* =========================
+   EXTRA LOOP (KEEP ALIVE)
+========================= */
+
+setInterval(()=>{
+// refresh light heartbeat
+document.title = "🕌 " + new Date().toLocaleTimeString();
+},1000);
+
+</script>
+
+</body>
+</html>
