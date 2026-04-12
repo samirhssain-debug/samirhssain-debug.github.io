@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>شاشة المسجد</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;700;900&family=Tajawal:wght@400;700;900&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --clock-weight: 900;
+    --ticker-weight: 900;
+    --date-weight: 700;
+    --bg-image: url('https://images.unsplash.com/photo-1542816417-0983c9c9ad53');
+    --mosque-name-size: 28px;
+    --mosque-name-font: 'Arial';
+    --mosque-name-color: #ffffff;
+    --prayer-name-size: 26px;
+    --prayer-time-size: 22px;
+    --circle-color: #00ff00;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    color: white;
+    height: 100vh;
+    overflow: hidden;
+    background: var(--bg-image) no-repeat center/cover;
+}
+
+.overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.65);
+    transition: background 0.3s;
+}
+
+.overlay.adhan-flash {
+    animation: flash 0.5s 6;
+}
+
+@keyframes flash {
+    0%, 100% { background: rgba(255,0,0,0.8); }
+    50% { background: rgba(255,255,255,0.8); }
+}
+
+.container {
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+    gap: 10px;
+    transition: opacity 0.5s;
+}
+
+/* وضع الصلاة */
+.prayer-mode {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    z-index: 2000;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.prayer-mode.active {
+    display: flex;
+}
+
+.prayer-mode-title {
+    font-size: 80px;
+    color: #ffd700;
+    font-weight: 900;
+    margin-bottom: 20px;
+    text-shadow: 0 0 30px #ffd700;
+}
+
+.prayer-mode-subtitle {
+    font-size: 40px;
+    color: white;
+    margin-bottom: 40px;
+}
+
+.prayer-mode-countdown {
+    font-size: 120px;
+    color: #00ff00;
+    font-weight: 900;
+    direction: ltr;
+    text-shadow: 0 0 40px #00ff00;
+}
+
+.prayer-mode-label {
+    font-size: 28px;
+    color: #ffd700;
+    margin-top: 20px;
+}
+
+/* وضع الأذكار بعد الصلاة */
+.adhkar-mode {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #0a4d2e 0%, #000 100%);
+    z-index: 2000;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    box-sizing: border-box;
+}
+
+.adhkar-mode.active {
+    display: flex;
+}
+
+.adhkar-mode-title {
+    font-size: 50px;
+    color: #ffd700;
+    font-weight: 900;
+    margin-bottom: 30px;
+    text-shadow: 0 0 20px #ffd700;
+}
+
+.adhkar-mode-content {
+    font-size: 32px;
+    color: white;
+    line-height: 2;
+    text-align: center;
+    max-width: 900px;
+    margin-bottom: 40px;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.adhkar-mode-timer {
+    font-size: 24px;
+    color: #00ff00;
+    margin-bottom: 20px;
+}
+
+.skip-adhkar-btn {
+    background: #ffd700;
+    color: black;
+    border: none;
+    padding: 15px 40px;
+    border-radius: 10px;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.container.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* إشعار الأذان */
+.adhan-alert {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    background: rgba(0,0,0,0.95);
+    border: 4px solid #ffd700;
+    border-radius: 20px;
+    padding: 40px 60px;
+    text-align: center;
+    z-index: 1000;
+    box-shadow: 0 0 50px #ffd700;
+    transition: transform 0.3s;
+}
+
+.adhan-alert.show {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.adhan-alert h2 {
+    font-size: 48px;
+    color: #ffd700;
+    margin: 0 0 15px 0;
+}
+
+.adhan-alert p {
+    font-size: 32px;
+    margin: 0;
+}
+
+/* زر الإعدادات */
+.settings-btn {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: rgba(0,0,0,0.6);
+    border: 2px solid #ffd700;
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* قائمة الإعدادات */
+.settings-panel {
+    position: absolute;
+    top: 70px;
+    left: 15px;
+    background: rgba(0,0,0,0.95);
+    border: 2px solid #ffd700;
+    border-radius: 15px;
+    width: 360px;
+    height: 80vh;
+    z-index: 99;
+    display: none;
+    flex-direction: column;
+}
+
+.settings-panel.show {
+    display: flex;
+}
+
+.settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px 10px;
+    border-bottom: 1px solid #ffd700;
+}
+
+.settings-header h3 {
+    margin: 0;
+    color: #ffd700;
+}
+
+.scroll-btns {
+    display: flex;
+    gap: 10px;
+}
+
+.scroll-btn {
+    background: #ffd700;
+    color: black;
+    border: none;
+    border-radius: 8px;
+    width: 35px;
+    height: 35px;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.scroll-btn:active {
+    background: #ffed4e;
+}
+
+.settings-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px 20px;
+    scroll-behavior: smooth;
+}
+
+.settings-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.settings-content::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+}
+
+.settings-content::-webkit-scrollbar-thumb {
+    background: #ffd700;
+    border-radius: 10px;
+}
+
+.settings-panel h4 {
+    margin: 15px 0 10px 0;
+    color: #ffd700;
+    font-size: 16px;
+    border-bottom: 1px solid #ffd700;
+    padding-bottom: 5px;
+}
+
+.setting-item {
+    margin-bottom: 12px;
+}
+
+.setting-item label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 13px;
+    color: #ffd700;
+}
+
+.setting-item input[type="range"],
+.setting-item input[type="text"],
+.setting-item input[type="time"],
+.setting-item input[type="number"],
+.setting-item input[type="file"],
+.setting-item input[type="color"],
+.setting-item select {
+    width: 100%;
+    padding: 6px;
+    border-radius: 5px;
+    border: 1px solid #ffd700;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.setting-item select option {
+    background: #1a1a1a;
+    color: white;
+}
+
+.setting-row {
+    display: flex;
+    gap: 8px;
+}
+
+.setting-row.setting-item {
+    flex: 1;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.05);
+    padding: 8px;
+    border-radius: 5px;
+}
+
+.checkbox-item input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.btn-save,.btn-auto {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+    font-size: 16px;
+}
+
+.btn-auto {
+    background: #00d4aa;
+    color: black;
+}
+
+.btn-save {
+    background: #ffd700;
+    color: black;
+}
+
+/* العنوان - اسم المسجد */
+.top {
+    text-align: center;
+    font-size: var(--mosque-name-size);
+    font-family: var(--mosque-name-font);
+    color: var(--mosque-name-color);
+    font-weight: bold;
+    background: rgba(0,0,0,0.4);
+    padding: 10px;
+    border-radius: 10px;
+}
+
+/* شريط الأحاديث المتحرك */
+.hadith-ticker {
+    background: rgba(255,215,0,0.15);
+    border: 2px solid #ffd700;
+    border-radius: 10px;
+    padding: 10px 0;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.hadith-text {
+    display: inline-block;
+    padding-left: 100%;
+    animation: scroll 180s linear infinite;
+    font-size: 26px;
+    font-weight: var(--ticker-weight);
+}
+
+@keyframes scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(100%); }
+}
+
+/* صف الساعة + العد التنازلي + الجمعة */
+.time-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 5px 0;
+    position: relative;
+}
+
+/* توقيت الجمعة فاليسر */
+.jumuah-box {
+    background: rgba(0,0,0,0.5);
+    border: 2px solid #ffd700;
+    border-radius: 12px;
+    padding: 10px 15px;
+    text-align: center;
+}
+
+.jumuah-time {
+    font-size: 24px;
+    font-weight: 900;
+    direction: ltr;
+}
+
+.jumuah-label {
+    font-size: 14px;
+    color: #ffd700;
+}
+
+/* الساعة */
+.clock {
+    text-align: center;
+    font-size: 80px;
+    font-weight: var(--clock-weight);
+    direction: ltr;
+}
+
+/* دائرة الوقت المتبقي - قابلة للتحريك */
+.countdown-circle {
+    width: 120px;
+    height: 120px;
+    border: 4px solid var(--circle-color);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.5);
+    cursor: move;
+    transition: border-color 0.5s;
+    box-shadow: 0 0 20px var(--circle-color);
+    position: relative;
+    user-select: none;
+    touch-action: none;
+}
+
+.countdown-circle.dragging {
+    opacity: 0.8;
+    transform: scale(1.05);
+    z-index: 50;
+}
+
+@keyframes pulse-red {
+    0%, 100% { box-shadow: 0 0 20px #ff0000; }
+    50% { box-shadow: 0 0 40px #ff0000, 0 0 60px #ff0000; }
+}
+
+.countdown-circle.urgent {
+    animation: pulse-red 1s infinite;
+}
+
+.countdown-time {
+    font-size: 24px;
+    font-weight: 900;
+    direction: ltr;
+}
+
+.countdown-label {
+    font-size: 12px;
+    color: #ffd700;
+    margin-top: 3px;
+}
+
+/* التاريخ الميلادي والهجري */
+.date {
+    text-align: center;
+    font-size: 22px;
+    font-weight: var(--date-weight);
+    margin: 5px 0;
+}
+
+/* 🔥 العرض الأفقي ديال الصلوات */
+.times {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    gap: 10px;
+    margin-top: auto;
+}
+
+.prayer-box {
+    flex: 1;
+    text-align: center;
+    background: rgba(255,255,0.10);
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+}
+
+.prayer-box.active {
+    background: rgba(255,215,0,0.20);
+    border: 2px solid #ffd700;
+}
+
+.prayer-name {
+    font-size: var(--prayer-name-size);
+    font-weight: bold;
+}
+
+.prayer-time {
+    font-size: var(--prayer-time-size);
+    direction: ltr;
+}
+
+.prayer-iqama {
+    font-size: 18px;
+    color: #ffd700;
+}
+
+/* الأحاديث بدل الأذكار */
+.adhkar {
+    text-align: center;
+    font-size: 24px;
+    font-weight: 900;
+    padding: 12px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 10px;
+    min-height: 35px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="overlay" id="overlay"></div>
+
+<!-- وضع الصلاة -->
+<div class="prayer-mode" id="prayerMode">
+    <div class="prayer-mode-title" id="prayerModeTitle">الله أكبر</div>
+    <div class="prayer-mode-subtitle" id="prayerModeSubtitle">حان الآن وقت الصلاة</div>
+    <div class="prayer-mode-countdown" id="prayerModeCountdown">10:00</div>
+    <div class="prayer-mode-label">المتبقي على الإقامة</div>
+</div>
+
+<!-- وضع الأذكار بعد الصلاة -->
+<div class="adhkar-mode" id="adhkarMode">
+    <div class="adhkar-mode-title" id="adhkarModeTitle">أذكار الصباح</div>
+    <div class="adhkar-mode-content" id="adhkarModeContent"></div>
+    <div class="adhkar-mode-timer" id="adhkarModeTimer">المتبقي: 5:00</div>
+    <button class="skip-adhkar-btn" onclick="skipAdhkar()">تخطي والرجوع</button>
+</div>
+
+<!-- إشعار الأذان -->
+<div class="adhan-alert" id="adhanAlert">
+    <h2>🕌 الله أكبر</h2>
+    <p id="adhanText">حان الآن وقت الأذان</p>
+</div>
+
+<!-- زر الإعدادات -->
+<div class="settings-btn" onclick="toggleSettings()">⚙️</div>
+
+<!-- قائمة الإعدادات -->
+<div class="settings-panel" id="settingsPanel">
+    <div class="settings-header">
+        <h3>إعدادات الشاشة</h3>
+        <div class="scroll-btns">
+            <button class="scroll-btn" onclick="scrollSettings(-100)">↑</button>
+            <button class="scroll-btn" onclick="scrollSettings(100)">↓</button>
+        </div>
+    </div>
+
+    <div class="settings-content" id="settingsContent">
+        <h4>🔔 إعدادات الأذان والصلاة</h4>
+        <div class="setting-item checkbox-item">
+            <input type="checkbox" id="adhanEnabled" checked>
+            <label for="adhanEnabled">تشغيل تنبيه الأذان</label>
+        </div>
+
+        <div class="setting-item checkbox-item">
+            <input type="checkbox" id="prayerModeEnabled" checked>
+            <label for="prayerModeEnabled">تفعيل وضع الصلاة</label>
+        </div>
+
+        <div class="setting-item checkbox-item">
+            <input type="checkbox" id="adhkarEnabled" checked>
+            <label for="adhkarEnabled">عرض الأذكار بعد الصلاة</label>
+        </div>
+
+        <div class="setting-item">
+            <label>مدة عرض الأذكار (دقائق)</label>
+            <input type="number" id="adhkarDuration" value="5" min="1" max="60">
+        </div>
+
+        <div class="setting-item">
+            <label>صوت الأذان</label>
+            <select id="adhanSoundSelect">
+                <option value="makkah">أذان مكة المكرمة</option>
+                <option value="madinah">أذان المدينة المنورة</option>
+                <option value="silent">صامت - إشارة بصرية فقط</option>
+            </select>
+        </div>
+
+        <h4>🕌 اسم المسجد</h4>
+        <div class="setting-item">
+            <label>اسم المسجد</label>
+            <input type="text" id="mosqueNameInput" value="مسجد النور">
+        </div>
+
+        <div class="setting-item">
+            <label>حجم الخط: <span id="nameSizeVal">28</span>px</label>
+            <input type="range" min="20" max="50" step="2" value="28" oninput="updateMosqueNameStyle('--mosque-name-size', this.value + 'px', 'nameSizeVal', this.value)">
+        </div>
+
+        <div class="setting-item">
+            <label>شكل الخط</label>
+            <select id="fontSelect" onchange="updateMosqueNameStyle('--mosque-name-font', this.value)">
+                <option value="Arial">عادي - Arial</option>
+                <option value="'Cairo', sans-serif">حديث - Cairo</option>
+                <option value="'Tajawal', sans-serif">واضح - Tajawal</option>
+                <option value="'Amiri', serif">تقليدي - Amiri</option>
+                <option value="'Scheherazade New', serif">مزخرف - Scheherazade</option>
+                <option value="Impact">عريض - Impact</option>
+            </select>
+        </div>
+
+        <div class="setting-item">
+            <label>لون الخط</label>
+            <input type="color" id="colorInput" value="#ffffff" oninput="updateMosqueNameStyle('--mosque-name-color', this.value)">
+        </div>
+
+        <h4>📝 حجم خط الصلوات</h4>
+        <div class="setting-item">
+            <label>حجم اسم الصلاة: <span id="prayerNameSizeVal">26</span>px</label>
+            <input type="range" min="18" max="36" step="2" value="26" oninput="updatePrayerStyle('--prayer-name-size', this.value + 'px', 'prayerNameSizeVal', this.value)">
+        </div>
+
+        <div class="setting-item">
+            <label>حجم التوقيت: <span id="prayerTimeSizeVal">22</span>px</label>
+            <input type="range" min="16" max="32" step="2" value="22" oninput="updatePrayerStyle('--prayer-time-size', this.value + 'px', 'prayerTimeSizeVal', this.value)">
+        </div>
+
+        <h4>⚙️ إعدادات عامة</h4>
+        <div class="setting-item">
+            <label>خلفية الشاشة - رابط صورة</label>
+            <input type="text" id="bgUrlInput" placeholder="https://example.com/image.jpg">
+        </div>
+
+        <div class="setting-item">
+            <label>أو اختار صورة من الجهاز</label>
+            <input type="file" id="bgFileInput" accept="image/*" onchange="loadBackground(event)">
+        </div>
+
+        <h4>🌍 المدينة</h4>
+        <div class="setting-row">
+            <div class="setting-item">
+                <label>المدينة</label>
+                <input type="text" id="cityInput" value="Taza" placeholder="Taza">
+            </div>
+            <div class="setting-item">
+                <label>الدولة</label>
+                <input type="text" id="countryInput" value="Morocco" placeholder="Morocco">
+            </div>
+        </div>
+        <button class="btn-auto" onclick="fetchPrayerTimes()">🌐 جلب تلقائي للمدينة المختارة</button>
+
+        <h4>🕌 مواقيت الصلاة</h4>
+        <div class="setting-row">
+            <div class="setting-item">
+                <label>الفجر</label>
+                <input type="time" id="fajrTime" value="05:10">
+            </div>
+            <div class="setting-item">
+                <label>الإقامة</label>
+                <input type="number" id="fajrIqama" value="10" min="0" max="60">
+            </div>
+        </div>
+
+        <div class="setting-row">
+            <div class="setting-item">
+                <label>الظهر</label>
+                <input type="time" id="dhuhrTime" value="13:30">
+            </div>
+            <div class="setting-item">
+                <label>الإقامة</label>
+                <input type="number" id="dhuhrIqama" value="10" min="0" max="60">
+            </div>
+        </div>
+
+        <div class="setting-row">
+            <div class="setting-item">
+                <label>العصر</label>
+                <input type="time" id="asrTime" value="16:40">
+            </div>
+            <div class="setting-item">
+                <label>الإقامة</label>
+                <input type="number" id="asrIqama" value="10" min="0" max="60">
+            </div>
+        </div>
+
+        <div class="setting-row">
+            <div class="setting-item">
+                <label>المغرب</label>
+                <input type="time" id="maghribTime" value="19:10">
+            </div>
+            <div class="setting-item">
+                <label>الإقامة</label>
+                <input type="number" id="maghribIqama" value="10" min="0" max="60">
+            </div>
+        </div>
+
+        <div class="setting-row">
+            <div class="setting-item">
+                <label>العشاء</label>
+                <input type="time" id="ishaTime" value="20:30">
+            </div>
+            <div class="setting-item">
+                <label>الإقامة</label>
+                <input type="number" id="ishaIqama" value="10" min="0" max="60">
+            </div>
+        </div>
+
+        <div class="setting-item">
+            <label>وقت الجمعة</label>
+            <input type="time" id="jumuahTimeInput" value="13:00">
+        </div>
+
+        <button class="btn-save" onclick="saveSettings()">💾 حفظ الإعدادات</button>
+    </div>
+</div>
+
+<div class="container" id="mainContainer">
+
+    <div class="top" id="mosqueName">🕌 مسجد النور</div>
+
+    <!-- شريط الأحاديث المتحرك -->
+    <div class="hadith-ticker">
+        <div class="hadith-text" id="hadithTicker"></div>
+    </div>
+
+    <!-- صف فيه: الجمعة + الساعة + الوقت المتبقي -->
+    <div class="time-row">
+        <div class="jumuah-box">
+            <div class="jumuah-time" id="jumuahTime">13:00</div>
+            <div class="jumuah-label">الجمعة</div>
+        </div>
+
+        <div class="clock" id="clock">00:00:00</div>
+
+        <div class="countdown-circle" id="countdownCircle">
+            <div class="countdown-time" id="countdownTime">00:00:00</div>
+            <div class="countdown-label" id="countdownLabel">المتبقي</div>
+        </div>
+    </div>
+
+    <div class="date" id="date"></div>
+
+    <!-- 🔥 الصلوات أفقي -->
+    <div class="times">
+
+        <div class="prayer-box" data-name="الفجر">
+            <div class="prayer-name">الفجر</div>
+            <div class="prayer-time" id="fajrDisplay">5:10 AM</div>
+            <div class="prayer-iqama" id="fajrIqamaDisplay">10</div>
+        </div>
+
+        <div class="prayer-box" data-name="الظهر">
+            <div class="prayer-name">الظهر</div>
+            <div class="prayer-time" id="dhuhrDisplay">1:30 PM</div>
+            <div class="prayer-iqama" id="dhuhrIqamaDisplay">10</div>
+        </div>
+
+        <div class="prayer-box" data-name="العصر">
+            <div class="prayer-name">العصر</div>
+            <div class="prayer-time" id="asrDisplay">4:40 PM</div>
+            <div class="prayer-iqama" id="asrIqamaDisplay">10</div>
+        </div>
+
+        <div class="prayer-box" data-name="المغرب">
+            <div class="prayer-name">المغرب</div>
+            <div class="prayer-time" id="maghribDisplay">7:10 PM</div>
+            <div class="prayer-iqama" id="maghribIqamaDisplay">10</div>
+        </div>
+
+        <div class="prayer-box" data-name="العشاء">
+            <div class="prayer-name">العشاء</div>
+            <div class="prayer-time" id="ishaDisplay">8:30 PM</div>
+            <div class="prayer-iqama" id="ishaIqamaDisplay">10</div>
+        </div>
+
+    </div>
+
+    <div class="adhkar" id="adhkar"></div>
+
+</div>
+
+<!-- أصوات الأذان -->
+<audio id="adhanAudio" preload="auto"></audio>
+
+<script>
+// 30 حديث صحيح
+const hadithList = [
+    "قال رسول الله ﷺ: إنما الأعمال بالنيات وإنما لكل امرئ ما نوى",
+    "قال رسول الله ﷺ: من كان يؤمن بالله واليوم الآخر فليقل خيرا أو ليصمت",
+    "قال رسول الله ﷺ: لا يؤمن أحدكم حتى يحب لأخيه ما يحب لنفسه",
+    "قال رسول الله ﷺ: المسلم من سلم المسلمون من لسانه ويده",
+    "قال رسول الله ﷺ: من حسن إسلام المرء تركه ما لا يعنيه",
+    "قال رسول الله ﷺ: لا تغضب ولك الجنة",
+    "قال رسول الله ﷺ: اتق الله حيثما كنت وأتبع السيئة الحسنة تمحها",
+    "قال رسول الله ﷺ: الكلمة الطيبة صدقة",
+    "قال رسول الله ﷺ: تبسمك في وجه أخيك صدقة",
+    "قال رسول الله ﷺ: من لا يشكر الناس لا يشكر الله",
+    "قال رسول الله ﷺ: خيركم خيركم لأهله وأنا خيركم لأهلي",
+    "قال رسول الله ﷺ: الدين النصيحة",
+    "قال رسول الله ﷺ: من غشنا فليس منا",
+    "قال رسول الله ﷺ: الحياء شعبة من الإيمان",
+    "قال رسول الله ﷺ: لا ضرر ولا ضرار",
+    "قال رسول الله ﷺ: يسروا ولا تعسروا وبشروا ولا تنفروا",
+    "قال رسول الله ﷺ: من سلك طريقا يلتمس فيه علما سهل الله له طريقا إلى الجنة",
+    "قال رسول الله ﷺ: إذا مات الإنسان انقطع عمله إلا من ثلاث: صدقة جارية أو علم ينتفع به أو ولد صالح يدعو له",
+    "قال رسول الله ﷺ: من دل على خير فله مثل أجر فاعله",
+    "قال رسول الله ﷺ: الصلوات الخمس والجمعة إلى الجمعة كفارة لما بينهن",
+    "قال رسول الله ﷺ: من صلى البردين دخل الجنة",
+    "قال رسول الله ﷺ: من بنى مسجدا لله بنى الله له بيتا في الجنة",
+    "قال رسول الله ﷺ: خير يوم طلعت عليه الشمس يوم الجمعة",
+    "قال رسول الله ﷺ: أكثروا من الصلاة علي يوم الجمعة",
+    "قال رسول الله ﷺ: من قرأ آية الكرسي دبر كل صلاة لم يمنعه من دخول الجنة إلا الموت",
+    "قال رسول الله ﷺ: الدعاء هو العبادة",
+    "قال رسول الله ﷺ: لا حول ولا قوة إلا بالله كنز من كنوز الجنة",
+    "قال رسول الله ﷺ: من قال سبحان الله وبحمده مائة مرة حطت خطاياه",
+    "قال رسول الله ﷺ: كلمتان خفيفتان على اللسان ثقيلتان في الميزان: سبحان الله وبحمده سبحان الله العظيم",
+    "قال رسول الله ﷺ: بلغوا عني ولو آية"
+];
+
+// أذكار الصباح
+const adhkarSabah = [
+    "أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لاَ إِلَهَ إِلاَّ اللَّهُ وَحْدَهُ لاَ شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ",
+    "اللَّهُمَّ بِكَ أَصْبَحْنَا، وَبِكَ أَمْسَيْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ، وَإِلَيْكَ النُّشُورُ",
+    "سُبْحَانَ اللَّهِ وَبِحَمْدِهِ، عَدَدَ خَلْقِهِ، وَرِضَا نَفْسِهِ، وَزِنَةَ عَرْشِهِ، وَمِدَادَ كَلِمَاتِهِ",
+    "اللَّهُمَّ أَنْتَ رَبِّي لا إِلَهَ إِلا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ",
+    "رَضِيتُ بِاللَّهِ رَبًّا، وَبِالإِسْلاَمِ دِينًا، وَبِمُحَمَّدٍ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ نَبِيًّا",
+    "بِسْمِ اللَّهِ الَّذِي لاَ يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الأَرْضِ وَلاَ فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ"
+];
+
+// أذكار المساء
+const adhkarMasaa = [
+    "أَمْسَيْنَا وَأَمْسَى الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لاَ إِلَهَ إِلاَّ اللَّهُ وَحْدَهُ لاَ شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ",
+    "اللَّهُمَّ بِكَ أَمْسَيْنَا، وَبِكَ أَصْبَحْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ، وَإِلَيْكَ الْمَصِيرُ",
+    "أَعُوذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ",
+    "اللَّهُمَّ أَنْتَ رَبِّي لا إِلَهَ إِلا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ",
+    "رَضِيتُ بِاللَّهِ رَبًّا، وَبِالإِسْلاَمِ دِينًا، وَبِمُحَمَّدٍ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ نَبِيًّا",
+    "بِسْمِ اللَّهِ الَّذِي لاَ يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الأَرْضِ وَلاَ فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ"
+];
+
+// روابط الأذان
+const adhanSounds = {
+    makkah: 'https://ia800605.us.archive.org/32/items/AdhanMakkah_201808/Adhan%20Makkah.mp3',
+    madinah: 'https://ia801309.us.archive.org/17/items/AdhanMadinah_201808/Adhan%20Madinah.mp3',
+    silent: ''
+};
+
+document.getElementById("hadithTicker").innerHTML = hadithList.join(" • ") + " • ";
+
+let adhanTriggered = {};
+let prayerModeActive = false;
+let prayerModeInterval = null;
+let adhkarModeInterval = null;
+let adhkarIndex = 0;
+
+// تحميل الإعدادات المحفوظة أولا
+loadSettings();
+initDraggableCircle();
+
+// دالة تحويل 24 ساعة إلى 12 ساعة AM/PM
+function format12Hour(time24) {
+    const [h, m] = time24.split(':').map(Number);
+    const period = h >= 12? 'PM' : 'AM';
+    const hour12 = h % 12 || 12;
+    return `${hour12}:${String(m).padStart(2,'0')} ${period}`;
+}
+
+//
