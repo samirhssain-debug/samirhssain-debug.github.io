@@ -1,0 +1,209 @@
+<!DOCTYPE html><html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mosque Ultra Pro MAX</title><style>
+:root{
+  --bg:#000;
+  --gold:#ffd700;
+  --green:#00ff88;
+  --text:#fff;
+}
+
+body{
+  margin:0;
+  font-family:Arial;
+  background:var(--bg);
+  color:var(--text);
+  overflow:hidden;
+}
+
+/* TOP BAR */
+.top{
+  text-align:center;
+  padding:15px;
+  font-size:28px;
+  font-weight:900;
+  color:var(--gold);
+}
+
+/* CLOCK */
+.clock{
+  text-align:center;
+  font-size:70px;
+  font-weight:900;
+}
+
+.date{
+  text-align:center;
+  font-size:18px;
+  opacity:0.8;
+}
+
+/* PRAYERS */
+.prayers{
+  display:flex;
+  justify-content:space-around;
+  margin-top:20px;
+  flex-wrap:wrap;
+}
+
+.prayer{
+  background:rgba(255,255,255,0.05);
+  border:1px solid var(--gold);
+  padding:10px;
+  border-radius:10px;
+  width:18%;
+  text-align:center;
+  margin:5px;
+}
+
+.prayer.active{
+  background:rgba(255,215,0,0.2);
+}
+
+/* COUNTDOWN */
+.countdown{
+  text-align:center;
+  font-size:30px;
+  margin-top:20px;
+  color:var(--green);
+}
+
+/* SETTINGS */
+.settingsBtn{
+  position:fixed;
+  top:10px;
+  left:10px;
+  background:var(--gold);
+  border:none;
+  padding:10px;
+  border-radius:50%;
+  font-size:18px;
+  cursor:pointer;
+}
+
+.settings{
+  position:fixed;
+  top:0;
+  left:-400px;
+  width:350px;
+  height:100%;
+  background:#111;
+  border-right:2px solid var(--gold);
+  transition:0.3s;
+  padding:15px;
+  overflow:auto;
+}
+
+.settings.open{
+  left:0;
+}
+
+.settings h3{
+  color:var(--gold);
+}
+
+.settings input{
+  width:100%;
+  padding:8px;
+  margin:5px 0;
+  border:none;
+  border-radius:5px;
+}
+
+button.save{
+  width:100%;
+  padding:10px;
+  background:var(--green);
+  border:none;
+  font-weight:bold;
+  margin-top:10px;
+  cursor:pointer;
+}
+</style></head><body><div class="top" id="mosqueName">🕌 Mosque Ultra Pro MAX</div>
+<div class="clock" id="clock">00:00:00</div>
+<div class="date" id="date"></div><div class="countdown" id="countdown">--:--:--</div><div class="prayers" id="prayers"></div><button class="settingsBtn" onclick="toggleSettings()">⚙️</button>
+
+<div class="settings" id="settings">
+  <h3>⚙️ Settings</h3><label>اسم المسجد</label> <input id="mosqueInput" />
+
+<label>الفجر</label> <input id="fajr" type="time" />
+
+<label>الظهر</label> <input id="dhuhr" type="time" />
+
+<label>العصر</label> <input id="asr" type="time" />
+
+<label>المغرب</label> <input id="maghrib" type="time" />
+
+<label>العشاء</label> <input id="isha" type="time" />
+
+<button class="save" onclick="save()">💾 Save</button>
+
+</div><script>
+let data = {
+  mosque:"Mosque Ultra Pro MAX",
+  fajr:"05:10",
+  dhuhr:"13:30",
+  asr:"16:40",
+  maghrib:"19:10",
+  isha:"20:30"
+};
+
+function load(){
+  let saved = localStorage.getItem("mosque");
+  if(saved) data = JSON.parse(saved);
+
+  document.getElementById("mosqueName").innerText = "🕌 " + data.mosque;
+  document.getElementById("mosqueInput").value = data.mosque;
+
+  document.getElementById("fajr").value = data.fajr;
+  document.getElementById("dhuhr").value = data.dhuhr;
+  document.getElementById("asr").value = data.asr;
+  document.getElementById("maghrib").value = data.maghrib;
+  document.getElementById("isha").value = data.isha;
+
+  renderPrayers();
+}
+
+function save(){
+  data.mosque=document.getElementById("mosqueInput").value;
+  data.fajr=document.getElementById("fajr").value;
+  data.dhuhr=document.getElementById("dhuhr").value;
+  data.asr=document.getElementById("asr").value;
+  data.maghrib=document.getElementById("maghrib").value;
+  data.isha=document.getElementById("isha").value;
+
+  localStorage.setItem("mosque",JSON.stringify(data));
+  load();
+}
+
+function renderPrayers(){
+  let p=["الفجر","الظهر","العصر","المغرب","العشاء"];
+  let t=[data.fajr,data.dhuhr,data.asr,data.maghrib,data.isha];
+
+  let html="";
+  for(let i=0;i<p.length;i++){
+    html+=`<div class='prayer'>
+      <div>${p[i]}</div>
+      <div>${t[i]}</div>
+    </div>`;
+  }
+  document.getElementById("prayers").innerHTML=html;
+}
+
+function updateClock(){
+  let d=new Date();
+  document.getElementById("clock").innerText=d.toLocaleTimeString();
+  document.getElementById("date").innerText=d.toLocaleDateString('ar-MA');
+}
+
+function toggleSettings(){
+  document.getElementById("settings").classList.toggle("open");
+}
+
+setInterval(updateClock,1000);
+load();
+updateClock();
+</script></body>
+</html>
