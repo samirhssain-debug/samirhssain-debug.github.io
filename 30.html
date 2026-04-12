@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>ضبط الإقامة - لكل صلاة</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none; /* منع تحديد النص أثناء الضغط */
+        }
+
+        body {
+            background: linear-gradient(145deg, #1e3c2c 0%, #0f2a1a 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', 'Tahoma', 'Amiri', 'Traditional Arabic', sans-serif;
+            padding: 16px;
+        }
+
+        /* الحاوية الرئيسية */
+        .container {
+            max-width: 100%;
+            background: rgba(255,248,225,0.95);
+            border-radius: 48px 48px 32px 32px;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,200,0.6);
+            padding: 20px 16px 24px;
+            transition: all 0.2s;
+        }
+
+        /* العنوان */
+        h1 {
+            font-size: 1.6rem;
+            text-align: center;
+            color: #2c5e2e;
+            border-bottom: 2px solid #d4b87a;
+            display: inline-block;
+            width: 100%;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+        h1 small {
+            font-size: 0.8rem;
+            color: #8b6b3d;
+            display: block;
+        }
+
+        /* جدول أفقي بالكامل - تمرير أفقي إذا لزم الأمر */
+        .horizontal-scroll {
+            overflow-x: auto;
+            overflow-y: visible;
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+        }
+
+        .prayer-row {
+            display: flex;
+            flex-direction: row;
+            gap: 12px;
+            justify-content: center;
+            min-width: min-content;
+        }
+
+        /* بطاقة كل صلاة - تصميم أفقي مدمج */
+        .prayer-card {
+            background: #fef7e6;
+            border-radius: 32px;
+            padding: 12px 8px;
+            min-width: 100px;
+            text-align: center;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+            border: 1px solid #eeddbb;
+            transition: 0.1s linear;
+        }
+
+        .prayer-name {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #3c2a1f;
+            margin-bottom: 12px;
+            background: #e9dbc9;
+            display: inline-block;
+            width: 80%;
+            border-radius: 60px;
+            padding: 4px 0;
+        }
+
+        .diff-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: #fff4e0;
+            padding: 8px 6px;
+            border-radius: 60px;
+            margin: 8px 0;
+        }
+
+        .diff-btn {
+            background: #cdb28b;
+            border: none;
+            font-size: 1.8rem;
+            font-weight: bold;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            transition: 0.1s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .diff-btn:active {
+            transform: scale(0.94);
+            background: #9b7e58;
+        }
+
+        .diff-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            min-width: 55px;
+            text-align: center;
+            color: #2b4b1e;
+            background: #ffffff;
+            padding: 4px 0;
+            border-radius: 36px;
+            font-family: monospace;
+        }
+
+        .unit {
+            font-size: 0.85rem;
+            color: #8b6942;
+            font-weight: bold;
+            margin-right: 2px;
+        }
+
+        /* أزرار الحفظ والإلغاء */
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-top: 15px;
+        }
+        button.action-btn {
+            font-size: 1.3rem;
+            padding: 12px 32px;
+            border: none;
+            border-radius: 60px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.1s;
+            background: #3c7a3e;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            font-family: inherit;
+        }
+        button.action-btn:active {
+            transform: scale(0.96);
+        }
+        .cancel-btn {
+            background: #a16b3a;
+        }
+        .save-btn {
+            background: #2b6e2f;
+            box-shadow: 0 0 0 1px #dbbc87;
+        }
+
+        /* رسالة حفظ */
+        .toast-msg {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #2c6e2c;
+            font-weight: bold;
+            background: #e0f0da;
+            padding: 8px;
+            border-radius: 50px;
+            transition: 0.2s;
+        }
+
+        /* التكيف مع الشاشات الصغيرة جداً - يظل أفقي لكن يقل التباعد */
+        @media (max-width: 650px) {
+            .prayer-card {
+                min-width: 85px;
+                padding: 8px 4px;
+            }
+            .prayer-name {
+                font-size: 1.1rem;
+            }
+            .diff-value {
+                font-size: 1.4rem;
+                min-width: 45px;
+            }
+            .diff-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 1.5rem;
+            }
+        }
+        @media (max-width: 550px) {
+            .prayer-card {
+                min-width: 78px;
+            }
+            .diff-control {
+                gap: 5px;
+            }
+        }
+        footer {
+            font-size: 0.65rem;
+            text-align: center;
+            margin-top: 20px;
+            color: #7c6748;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>⏱️ ضبط الفرق بين الإقامة والأذان
+        <small>لكل صلاة على حدة · عرض أفقي</small>
+    </h1>
+
+    <div class="horizontal-scroll">
+        <div class="prayer-row" id="prayerRow">
+            <!-- سيتم إضافة الصلوات بواسطة الجافاسكريبت مع بيانات افتراضية -->
+        </div>
+    </div>
+
+    <div class="actions">
+        <button class="action-btn cancel-btn" id="cancelBtn">إلغاء</button>
+        <button class="action-btn save-btn" id="saveBtn">💾 حفظ الإعدادات</button>
+    </div>
+    <div id="toastMessage" class="toast-msg" style="display: none;"></div>
+    <footer>▲ اضغط + أو − لتعديل الفرق (دقائق) لكل صلاة بشكل مستقل</footer>
+</div>
+
+<script>
+    // قائمة الصلوات بالترتيب
+    const prayers = [
+        { name: "الفجر", key: "fajr", diff: 14 },    // الفرق الافتراضي 14 دقيقة
+        { name: "الظهر", key: "dhuhr", diff: 5 },
+        { name: "العصر", key: "asr", diff: 5 },
+        { name: "المغرب", key: "maghrib", diff: 5 },
+        { name: "العشاء", key: "isha", diff: 5 }
+    ];
+
+    // تخزين القيم الحالية (سنة التعديلات)
+    let currentDiffs = {};
+
+    // تهيئة القيم من localStorage إن وجدت
+    function loadFromStorage() {
+        const saved = localStorage.getItem("iqamah_diff_settings");
+        if(saved) {
+            try {
+                const obj = JSON.parse(saved);
+                prayers.forEach(p => {
+                    if(typeof obj[p.key] === 'number') {
+                        currentDiffs[p.key] = obj[p.key];
+                    } else {
+                        currentDiffs[p.key] = p.diff;
+                    }
+                });
+            } catch(e) { setDefaultDiffs(); }
+        } else {
+            setDefaultDiffs();
+        }
+    }
+
+    function setDefaultDiffs() {
+        prayers.forEach(p => {
+            currentDiffs[p.key] = p.diff;
+        });
+    }
+
+    // حفظ القيم الحالية إلى localStorage
+    function persistSettings() {
+        const toStore = {};
+        prayers.forEach(p => {
+            toStore[p.key] = currentDiffs[p.key];
+        });
+        localStorage.setItem("iqamah_diff_settings", JSON.stringify(toStore));
+    }
+
+    // إنشاء واجهة الصلوات بشكل أفقي
+    function renderPrayers() {
+        const container = document.getElementById("prayerRow");
+        container.innerHTML = "";
+        prayers.forEach(pray => {
+            const card = document.createElement("div");
+            card.className = "prayer-card";
+            card.setAttribute("data-prayer", pray.key);
+
+            // اسم الصلاة
+            const nameSpan = document.createElement("div");
+            nameSpan.className = "prayer-name";
+            nameSpan.innerText = pray.name;
+
+            // حاوية التحكم: -   value   +
+            const controlDiv = document.createElement("div");
+            controlDiv.className = "diff-control";
+
+            const minusBtn = document.createElement("button");
+            minusBtn.innerText = "−";
+            minusBtn.className = "diff-btn";
+
+            const valueSpan = document.createElement("span");
+            valueSpan.className = "diff-value";
+            valueSpan.id = `val-${pray.key}`;
+            valueSpan.innerText = currentDiffs[pray.key];
+
+            const plusBtn = document.createElement("button");
+            plusBtn.innerText = "+";
+            plusBtn.className = "diff-btn";
+
+            const unitSpan = document.createElement("span");
+            unitSpan.className = "unit";
+            unitSpan.innerText = "دقيقة";
+
+            controlDiv.appendChild(minusBtn);
+            controlDiv.appendChild(valueSpan);
+            controlDiv.appendChild(plusBtn);
+            controlDiv.appendChild(unitSpan);
+
+            card.appendChild(nameSpan);
+            card.appendChild(controlDiv);
+            container.appendChild(card);
+
+            // أحداث الأزرار
+            minusBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                let newVal = currentDiffs[pray.key] - 1;
+                if(newVal < 0) newVal = 0;   // منع الفرق السلبي (يمكنك تغييره إلى -5 لو تريد تقديم)
+                if(newVal > 60) newVal = 60;  // حد أقصى ساعة
+                currentDiffs[pray.key] = newVal;
+                updateDisplay(pray.key);
+                showTempFeedback(card, "تعديل");
+            });
+
+            plusBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                let newVal = currentDiffs[pray.key] + 1;
+                if(newVal > 60) newVal = 60;
+                if(newVal < 0) newVal = 0;
+                currentDiffs[pray.key] = newVal;
+                updateDisplay(pray.key);
+                showTempFeedback(card, "تعديل");
+            });
+        });
+    }
+
+    function updateDisplay(prayKey) {
+        const span = document.getElementById(`val-${prayKey}`);
+        if(span) span.innerText = currentDiffs[prayKey];
+    }
+
+    // تأثير بسيط عند التعديل
+    function showTempFeedback(card, msg) {
+        const originalBg = card.style.background;
+        card.style.background = "#fff2dd";
+        setTimeout(() => {
+            card.style.background = originalBg;
+        }, 120);
+    }
+
+    // إظهار رسالة حفظ
+    function showMessage(text, isError = false) {
+        const toast = document.getElementById("toastMessage");
+        toast.style.display = "block";
+        toast.innerText = text;
+        toast.style.background = isError ? "#f8d7da" : "#d9f0d3";
+        toast.style.color = isError ? "#a13e2d" : "#1f5f1f";
+        setTimeout(() => {
+            toast.style.display = "none";
+        }, 2200);
+    }
+
+    // إعادة تعيين إلى القيم المخزنة أو الافتراضية حسب localStorage
+    function resetToSaved() {
+        const saved = localStorage.getItem("iqamah_diff_settings");
+        if(saved) {
+            try {
+                const obj = JSON.parse(saved);
+                prayers.forEach(p => {
+                    if(typeof obj[p.key] === 'number') {
+                        currentDiffs[p.key] = obj[p.key];
+                    } else {
+                        currentDiffs[p.key] = p.diff;
+                    }
+                    updateDisplay(p.key);
+                });
+                showMessage("↺ تم العودة لآخر إعدادات محفوظة");
+            } catch(e) {
+                setDefaultDiffs();
+                renderPrayers();  // إعادة الرندر
+                showMessage("⚠️ استعادة الإعدادات الافتراضية");
+            }
+        } else {
+            setDefaultDiffs();
+            renderPrayers();
+            showMessage("📋 لا توجد إعدادات سابقة، تم ضبط القيم الافتراضية");
+        }
+    }
+
+    // حدث الحفظ
+    function saveSettings() {
+        persistSettings();
+        showMessage("✅ تم حفظ إعدادات الإقامة لكل صلاة بنجاح!");
+        // (اختياري: يمكن إضافة تأثير اهتزاز خفيف)
+    }
+
+    // ربط الأزرار
+    document.getElementById("saveBtn").addEventListener("click", saveSettings);
+    document.getElementById("cancelBtn").addEventListener("click", () => {
+        resetToSaved();
+    });
+
+    // بدء التشغيل
+    function init() {
+        loadFromStorage();    // تحميل القيم من localStorage
+        renderPrayers();      // رسم الواجهة الأفقية
+    }
+
+    init();
+</script>
+</body>
+</html>
