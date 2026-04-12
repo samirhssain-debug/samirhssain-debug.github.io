@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>مواقيت الصلاة - إعدادات كاملة</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: black;
+            color: white;
+            min-height: 100vh;
+            transition: background-color 0.3s;
+        }
+
+        /* الواجهة الرئيسية */
+        .normal-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        /* زر الإعدادات */
+        .settings-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: gold;
+            color: black;
+            border: none;
+            border-radius: 50px;
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            z-index: 100;
+            font-weight: bold;
+        }
+
+        /* لوحة الإعدادات */
+        .settings-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 15px;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .settings-panel.hidden {
+            display: none;
+        }
+
+        .settings-panel input, .settings-panel select, .settings-panel textarea {
+            padding: 10px;
+            font-size: 1rem;
+            border-radius: 10px;
+            border: none;
+            width: 250px;
+            text-align: center;
+        }
+
+        .settings-panel textarea {
+            width: 80%;
+            height: 100px;
+            text-align: right;
+        }
+
+        .settings-panel label {
+            font-size: 1rem;
+            color: gold;
+            margin-top: 10px;
+        }
+
+        .save-btn, .close-btn {
+            background: gold;
+            color: black;
+            border: none;
+            padding: 10px 30px;
+            margin: 10px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .close-btn {
+            background: red;
+            color: white;
+        }
+
+        /* شاشة العد التنازلي */
+        .countdown-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: pulse 0.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { background-color: black; }
+            50% { background-color: #1a0000; }
+            100% { background-color: black; }
+        }
+
+        .countdown-number {
+            font-size: 15vw;
+            font-weight: bold;
+            background: linear-gradient(45deg, gold, orange, red);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: zoom 0.5s infinite alternate;
+        }
+
+        @keyframes zoom {
+            from { transform: scale(1); }
+            to { transform: scale(1.2); }
+        }
+
+        .countdown-label {
+            font-size: 1.8rem;
+            margin-top: 20px;
+            color: gold;
+            font-weight: bold;
+        }
+
+        /* شاشة الدعاء */
+        .dua-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+            gap: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #0a0a0a, #1a1a2e);
+        }
+
+        .dua-text {
+            font-size: 1.8rem;
+            line-height: 1.8;
+            color: #e0e0e0;
+            max-width: 90%;
+        }
+
+        .dua-title {
+            font-size: 2rem;
+            color: gold;
+            margin-bottom: 20px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .time-left {
+            font-size: 1.5rem;
+            color: #00ffcc;
+            margin-top: 20px;
+        }
+
+        h1 { font-size: 2rem; }
+        h2 { font-size: 1.8rem; color: gold; }
+    </style>
+</head>
+<body>
+    <button class="settings-btn" id="settingsBtn">⚙️ إعدادات</button>
+
+    <div id="app">
+        <div id="normalContent" class="normal-screen">
+            <h1 id="mainTitle">🕌 أوقات الصلاة</h1>
+            <h2>الصلاة القادمة: <span id="nextPrayer">--</span></h2>
+            <div class="time-left">الوقت المتبقي: <span id="timeRemaining">--</span></div>
+        </div>
+
+        <div id="countdownScreen" class="countdown-screen hidden">
+            <div class="countdown-number" id="countdownNumber">00</div>
+            <div class="countdown-label">ثانية متبقية للأذان</div>
+        </div>
+
+        <div id="duaScreen" class="dua-screen hidden">
+            <div class="dua-title">📿 أذكار ما بعد الصلاة</div>
+            <div class="dua-text" id="duaText">
+                سبحان الله ×33<br>
+                الحمد لله ×33<br>
+                الله أكبر ×34<br><br>
+                لا إله إلا الله وحده لا شريك له، له الملك وله الحمد وهو على كل شيء قدير
+            </div>
+        </div>
+    </div>
+
+    <div id="settingsPanel" class="settings-panel hidden">
+        <h2 style="color:gold;">⚙️ الإعدادات</h2>
+        
+        <label>🔴 مدة الشاشة السوداء (دقائق)</label>
+        <input type="number" id="blackDuration" min="1" max="60" value="10">
+        
+        <label>📿 مدة ظهور الدعاء (دقائق)</label>
+        <input type="number" id="duaDuration" min="1" max="60" value="5">
+        
+        <label>🕐 الفجر (ساعة : دقيقة)</label>
+        <input type="text" id="fajrTime" placeholder="05:00" value="05:00">
+        
+        <label>🕐 الظهر (ساعة : دقيقة)</label>
+        <input type="text" id="dhuhrTime" placeholder="13:00" value="13:00">
+        
+        <label>🕐 العصر (ساعة : دقيقة)</label>
+        <input type="text" id="asrTime" placeholder="16:30" value="16:30">
+        
+        <label>🕐 المغرب (ساعة : دقيقة)</label>
+        <input type="text" id="maghribTime" placeholder="19:00" value="19:00">
+        
+        <label>🕐 العشاء (ساعة : دقيقة)</label>
+        <input type="text" id="ishaTime" placeholder="20:30" value="20:30">
+        
+        <label>📏 حجم الخط في الواجهة الرئيسية</label>
+        <select id="mainFontSize">
+            <option value="1rem">صغير</option>
+            <option value="1.5rem">وسط</option>
+            <option value="2rem" selected>كبير</option>
+            <option value="2.5rem">كبير جداً</option>
+        </select>
+        
+        <label>📏 حجم الخط في شاشة الدعاء</label>
+        <select id="duaFontSize">
+            <option value="1.2rem">صغير</option>
+            <option value="1.8rem" selected>وسط</option>
+            <option value="2.2rem">كبير</option>
+        </select>
+        
+        <label>🎨 لون خلفية الواجهة الرئيسية</label>
+        <select id="bgColor">
+            <option value="black" selected>أسود</option>
+            <option value="#0a192f">أزرق داكن</option>
+            <option value="#0a2f1a">أخضر داكن</option>
+        </select>
+        
+        <label>⏱️ تفعيل العد التنازلي في آخر دقيقة</label>
+        <select id="enableCountdown">
+            <option value="yes" selected>نعم</option>
+            <option value="no">لا</option>
+        </select>
+        
+        <label>🔊 صوت عند بدء العد التنازلي</label>
+        <select id="enableSound">
+            <option value="yes" selected>نعم</option>
+            <option value="no">لا</option>
+        </select>
+        
+        <label>📝 نص الدعاء (يمكنك تعديله)</label>
+        <textarea id="duaContent">سبحان الله ×33
+الحمد لله ×33
+الله أكبر ×34
+
+لا إله إلا الله وحده لا شريك له، له الملك وله الحمد وهو على كل شيء قدير</textarea>
+        
+        <div>
+            <button class="save-btn" id="saveSettings">💾 حفظ</button>
+            <button class="close-btn" id="closeSettings">❌ إغلاق</button>
+        </div>
+    </div>
+
+    <script>
+        let settings = {
+            blackDuration: 10,
+            duaDuration: 5,
+            enableCountdown: "yes",
+            enableSound: "yes",
+            mainFontSize: "2rem",
+            duaFontSize: "1.8rem",
+            bgColor: "black",
+            duaContent: `سبحان الله ×33\nالحمد لله ×33\nالله أكبر ×34\n\nلا إله إلا الله وحده لا شريك له، له الملك وله الحمد وهو على كل شيء قدير`,
+            prayerTimes: {
+                الفجر: "05:00",
+                الظهر: "13:00",
+                العصر: "16:30",
+                المغرب: "19:00",
+                العشاء: "20:30"
+            }
+        };
+
+        let soundPlayed = false;
+
+        function loadSettings() {
+            const saved = localStorage.getItem("prayerSettingsFull");
+            if (saved) {
+                settings = JSON.parse(saved);
+            }
+            document.getElementById("blackDuration").value = settings.blackDuration;
+            document.getElementById("duaDuration").value = settings.duaDuration;
+            document.getElementById("fajrTime").value = settings.prayerTimes["الفجر"];
+            document.getElementById("dhuhrTime").value = settings.prayerTimes["الظهر"];
+            document.getElementById("asrTime").value = settings.prayerTimes["العصر"];
+            document.getElementById("maghribTime").value = settings.prayerTimes["المغرب"];
+            document.getElementById("ishaTime").value = settings.prayerTimes["العشاء"];
+            document.getElementById("mainFontSize").value = settings.mainFontSize;
+            document.getElementById("duaFontSize").value = settings.duaFontSize;
+            document.getElementById("bgColor").value = settings.bgColor;
+            document.getElementById("enableCountdown").value = settings.enableCountdown;
+            document.getElementById("enableSound").value = settings.enableSound;
+            document.getElementById("duaContent").value = settings.duaContent;
+            
+            applyUISettings();
+        }
+
+        function applyUISettings() {
+            document.getElementById("normalContent").style.fontSize = settings.mainFontSize;
+            document.getElementById("duaText").style.fontSize = settings.duaFontSize;
+            document.getElementById("duaText").innerHTML = settings.duaContent.replace(/\n/g, "<br>");
+            document.body.style.backgroundColor = settings.bgColor;
+        }
+
+        function saveSettings() {
+            settings.blackDuration = parseInt(document.getElementById("blackDuration").value);
+            settings.duaDuration = parseInt(document.getElementById("duaDuration").value);
+            settings.prayerTimes = {
+                الفجر: document.getElementById("fajrTime").value,
+                الظهر: document.getElementById("dhuhrTime").value,
+                العصر: document.getElementById("asrTime").value,
+                المغرب: document.getElementById("maghribTime").value,
+                العشاء: document.getElementById("ishaTime").value
+            };
+            settings.mainFontSize = document.getElementById("mainFontSize").value;
+            settings.duaFontSize = document.getElementById("duaFontSize").value;
+            settings.bgColor = document.getElementById("bgColor").value;
+            settings.enableCountdown = document.getElementById("enableCountdown").value;
+            settings.enableSound = document.getElementById("enableSound").value;
+            settings.duaContent = document.getElementById("duaContent").value;
+            
+            localStorage.setItem("prayerSettingsFull", JSON.stringify(settings));
+            applyUISettings();
+            alert("تم حفظ الإعدادات ✅");
+            location.reload();
+        }
+
+        function parseTime(timeStr) {
+            const parts = timeStr.split(":");
+            return { hour: parseInt(parts[0]), minute: parseInt(parts[1]) };
+        }
+
+        function getPrayerTimes() {
+            return {
+                الفجر: parseTime(settings.prayerTimes["الفجر"]),
+                الظهر: parseTime(settings.prayerTimes["الظهر"]),
+                العصر: parseTime(settings.prayerTimes["العصر"]),
+                المغرب: parseTime(settings.prayerTimes["المغرب"]),
+                العشاء: parseTime(settings.prayerTimes["العشاء"])
+            };
+        }
+
+        const prayerOrder = ["الفجر", "الظهر", "العصر", "المغرب", "العشاء"];
+        let currentState = "normal";
+        let lastSecond = -1;
+
+        function playBeep() {
+            if (settings.enableSound !== "yes") return;
+            try {
+                const audio = new Audio('data:audio/wav;base64,U3RlYWx0aCBzb3VuZCBub3QgYXZhaWxhYmxl');
+                audio.play().catch(e => console.log("صوت غير مدعوم"));
+            } catch(e) {}
+        }
+
+        function update() {
+            const now = new Date();
+            const prayerTimesObj = getPrayerTimes();
+            
+            let nextPrayerName = null;
+            let nextPrayerTime = null;
+            let currentPrayerTime = null;
+
+            for (let i = 0; i < prayerOrder.length; i++) {
+                const prayer = prayerOrder[i];
+                const time = prayerTimesObj[prayer];
+                const prayerDateTime = new Date();
+                prayerDateTime.setHours(time.hour, time.minute, 0, 0);
+
+                if (prayerDateTime > now) {
+                    nextPrayerName = prayer;
+                    nextPrayerTime = prayerDateTime;
+                    if (i > 0) {
+                        const prevTime = prayerTimesObj[prayerOrder[i-1]];
+                        currentPrayerTime = new Date();
+                        currentPrayerTime.setHours(prevTime.hour, prevTime.minute, 0, 0);
+                    }
+                    break;
+                }
+            }
+
+            if (!nextPrayerTime) {
+                const tomorrow = new Date(now);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const fajrTime = prayerTimesObj["الفجر"];
+                tomorrow.setHours(fajrTime.hour, fajrTime.minute, 0, 0);
+                nextPrayerName = "الفجر";
+                nextPrayerTime = tomorrow;
+                const ishaTime = prayerTimesObj["العشاء"];
+                currentPrayerTime = new Date();
+                currentPrayerTime.setHours(ishaTime.hour, ishaTime.minute, 0, 0);
+            }
+
+            const diffToNextSeconds = Math.floor((nextPrayerTime - now) / 1000);
+            const diffToNextMinutes = Math.floor(diffToNextSeconds / 60);
+            const remainingSeconds = diffToNextSeconds % 60;
+
+            let minutesSincePrayer = null;
+            if (currentPrayerTime && now > currentPrayerTime) {
+                minutesSincePrayer = Math.floor((now - currentPrayerTime) / 1000 / 60);
+            }
+
+            // صوت عند بدء العد التنازلي (مرة واحدة)
+            if (settings.enableSound === "yes" && diffToNextSeconds <= 60 && diffToNextSeconds > 0 && lastSecond !== diffToNextSeconds) {
+                if (!soundPlayed && diffToNextSeconds <= 60) {
+                    playBeep();
+                    soundPlayed = true;
+                }
+            }
+            if (diffToNextSeconds > 61) soundPlayed = false;
+            lastSecond = diffToNextSeconds;
+
+            // 1. العد التنازلي
+            if (settings.enableCountdown === "yes" && diffToNextSeconds <= 60 && diffToNextSeconds > 0) {
+                setState("countdown");
+                document.getElementById("countdownNumber").innerText = diffToNextSeconds;
+            }
+            // 2. الشاشة السوداء
+            else if (minutesSincePrayer >= 0 && minutesSincePrayer < settings.blackDuration) {
+                setState("black");
+            }
+            // 3. الدعاء
+            else if (minutesSincePrayer >= settings.blackDuration && 
+                     minutesSincePrayer < settings.blackDuration + settings.duaDuration && 
+                     diffToNextSeconds > 60) {
+                setState("dua");
+            }
+            // 4. الواجهة الرئيسية
+            else {
+                setState("normal");
+                document.getElementById("nextPrayer").innerText = nextPrayerName;
+                document.getElementById("timeRemaining").innerText = `${diffToNextMinutes} دقيقة و ${remainingSeconds} ثانية`;
+            }
+        }
+
+        function setState(state) {
+            if (currentState === state) return;
+            currentState = state;
+
+            const normal = document.getElementById("normalContent");
+            const countdown = document.getElementById("countdownScreen");
+            const dua = document.getElementById("duaScreen");
+
+            if (normal) normal.classList.add("hidden");
+            if (countdown) countdown.classList.add("hidden");
+            if (dua) dua.classList.add("hidden");
+            document.body.style.backgroundColor = settings.bgColor;
+
+            if (state === "normal") {
+                if (normal) normal.classList.remove("hidden");
+            } else if (state === "countdown") {
+                if (countdown) countdown.classList.remove("hidden");
+            } else if (state === "dua") {
+                if (dua) dua.classList.remove("hidden");
+                document.getElementById("duaText").innerHTML = settings.duaContent.replace(/\n/g, "<br>");
+                document.getElementById("duaText").style.fontSize = settings.duaFontSize;
+            } else if (state === "black") {
+                document.body.innerHTML = '<div style="background:black; width:100%; height:100%;"></div><button class="settings-btn" id="settingsBtn" style="position:fixed;top:20px;right:20px;z-index:2000;">⚙️ إعدادات</button>';
+                const newBtn = document.getElementById("settingsBtn");
+                if (newBtn) {
+                    newBtn.onclick = () => document.getElementById("settingsPanel").classList.remove("hidden");
+                }
+                setTimeout(() => {
+                    if (currentState === "black") location.reload();
+                }, 1000);
+            }
+        }
+
+        loadSettings();
+        setInterval(update, 1000);
+        update();
+
+        document.getElementById("settingsBtn").onclick = () => {
+            document.getElementById("settingsPanel").classList.remove("hidden");
+        };
+        document.getElementById("saveSettings").onclick = saveSettings;
+        document.getElementById("closeSettings").onclick = () => {
+            document.getElementById("settingsPanel").classList.add("hidden");
+        };
+    </script>
+</body>
+</html>
