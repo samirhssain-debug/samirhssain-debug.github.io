@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مسجد النور</title>
+  <style>
+    body {
+      font-family: 'Tahoma', sans-serif;
+      background: #d4c9a8;
+      margin: 0;
+      padding: 20px;
+    }
+    .app {
+      max-width: 450px;
+      margin: auto;
+      background: #fef7e0;
+      border-radius: 30px;
+      padding: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      border: 1px solid #c2b280;
+    }
+    h1 {
+      text-align: center;
+      color: #2c5e2e;
+      margin-top: 0;
+    }
+    .slider-islamic {
+      background: #2c5e2e;
+      padding: 10px;
+      border-radius: 40px;
+      overflow: hidden;
+      white-space: nowrap;
+      margin: 15px 0;
+    }
+    .slider-content {
+      display: inline-block;
+      animation: scrollText 20s linear infinite;
+      color: #ffefc0;
+      font-size: 14px;
+    }
+    .slider-content span {
+      margin-left: 35px;
+    }
+    @keyframes scrollText {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .slider-islamic:hover .slider-content {
+      animation-play-state: paused;
+    }
+    .quran-time {
+      background: #e8e0c0;
+      padding: 10px;
+      border-radius: 20px;
+      text-align: center;
+      margin: 15px 0;
+      font-weight: bold;
+    }
+    .prayer-row {
+      display: flex;
+      justify-content: space-between;
+      background: #fff3cf;
+      margin: 10px 0;
+      padding: 12px;
+      border-radius: 15px;
+    }
+    .settings {
+      background: #f0e8d0;
+      border-radius: 20px;
+      padding: 15px;
+      margin-top: 20px;
+    }
+    .setting-line {
+      display: flex;
+      justify-content: space-between;
+      margin: 12px 0;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    button {
+      background: #3b6e3b;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+    .exit-btn {
+      background: #a04040;
+    }
+    .nav-small {
+      background: #6b8c5c;
+      padding: 5px 12px;
+    }
+    input {
+      padding: 8px;
+      border-radius: 15px;
+      border: 1px solid #bba66a;
+      flex: 1;
+    }
+    .volume-buttons {
+      display: flex;
+      gap: 10px;
+    }
+    .footer-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 15px;
+      gap: 10px;
+    }
+    select {
+      padding: 8px;
+      border-radius: 15px;
+      border: 1px solid #bba66a;
+      background: white;
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- شريط متحرك أدعية وأحاديث -->
+  <div class="slider-islamic">
+    <div class="slider-content">
+      <span>📖 قال ﷺ: "إنما الأعمال بالنيات"</span>
+      <span>🤲 دعاء: "ربنا آتنا في الدنيا حسنة"</span>
+      <span>⭐ قال ﷺ: "لا يؤمن أحدكم حتى يحب لأخيه ما يحب لنفسه"</span>
+      <span>💎 دعاء: "اللهم إني أسألك العفو والعافية"</span>
+      <span>🌙 قال ﷺ: "من صلى الفجر في جماعة فهو في ذمة الله"</span>
+    </div>
+  </div>
+
+  <!-- اسم المسجد (متغير) -->
+  <div style="text-align: center;">
+    <h1 id="mosqueNameDisplay">مسجد النور</h1>
+  </div>
+
+  <!-- خلال القران -->
+  <div class="quran-time">
+    خلال القران يوم السبت الساعة 4 عصر
+  </div>
+
+  <!-- مواقيت الصلاة -->
+  <div class="prayer-row">
+    <span>0:35 المحطات الثانية للجمارك</span>
+    <span>04:35:1</span>
+  </div>
+  <div class="prayer-row">
+    <span>الأحد 24 شوال 1447هـ</span>
+    <span></span>
+  </div>
+  <div class="prayer-row">
+    <span>الصفر</span>
+    <span>19:10</span>
+  </div>
+  <div class="prayer-row">
+    <span>الإقامة بعد 10 دقائق</span>
+    <span></span>
+  </div>
+  <div class="prayer-row">
+    <span>العصر</span>
+    <span>16:40</span>
+  </div>
+  <div class="prayer-row">
+    <span>الإقامة بعد 10 دقائق</span>
+    <span></span>
+  </div>
+
+  <!-- الإعدادات المتقدمة -->
+  <div class="settings" id="settingsPanel">
+    <h3>⚙️ الإعدادات المتقدمة</h3>
+    
+    <!-- كتابة اسم مسجد جديد وحفظه -->
+    <div class="setting-line">
+      <label>📝 اسم مسجد جديد:</label>
+      <input type="text" id="newMosqueInput" placeholder="اكتب اسم المسجد">
+      <button id="saveMosqueBtn">💾 حفظ</button>
+    </div>
+
+    <!-- قائمة المساجد المحفوظة -->
+    <div class="setting-line">
+      <label>🗂️ المساجد المحفوظة:</label>
+      <select id="mosqueList">
+        <option>مسجد النور</option>
+      </select>
+      <button id="applySelectedMosque">تطبيق</button>
+    </div>
+
+    <!-- إعدادات الصوت (من الصورة الأصلية) -->
+    <div class="setting-line">
+      <span>🔊 أقل صوت الأذن</span>
+      <span id="volumeValue">50%</span>
+      <div class="volume-buttons">
+        <button id="volDown">▼</button>
+        <button id="volUp">▲</button>
+      </div>
+    </div>
+
+    <div class="setting-line">
+      <span>🖼️ تغيير التصوير الصورة</span>
+      <span>100%</span>
+    </div>
+    <div class="setting-line">
+      <span>⬅️➡️ تغيير الـ (يمين/يسار)</span>
+      <span>50%</span>
+    </div>
+    <div class="setting-line">
+      <span>⬆️⬇️ تغيير الـ (فوق/أسفل)</span>
+      <span>50%</span>
+    </div>
+
+    <!-- صورة الخلفية -->
+    <div class="setting-line">
+      <span>🖼️ صورة الخلفية</span>
+      <span>رفع صورة من الجهاز</span>
+    </div>
+
+    <!-- أزرار الخروج + صعود/هبوط داخل الإعدادات -->
+    <div class="footer-buttons">
+      <button id="exitBtn" class="exit-btn">🚪 خروج</button>
+      <button id="scrollUpBtn" class="nav-small">▲ صعود</button>
+      <button id="scrollDownBtn" class="nav-small">▼ هبوط</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---------- إدارة أسماء المساجد ----------
+  let savedMosques = ["مسجد النور"];
+  const mosqueSelect = document.getElementById('mosqueList');
+  const mosqueDisplay = document.getElementById('mosqueNameDisplay');
+  const newInput = document.getElementById('newMosqueInput');
+  const saveBtn = document.getElementById('saveMosqueBtn');
+  const applyBtn = document.getElementById('applySelectedMosque');
+
+  function updateMosqueList() {
+    mosqueSelect.innerHTML = '';
+    savedMosques.forEach(m => {
+      let option = document.createElement('option');
+      option.value = m;
+      option.textContent = m;
+      mosqueSelect.appendChild(option);
+    });
+  }
+
+  saveBtn.addEventListener('click', () => {
+    let newName = newInput.value.trim();
+    if (newName && !savedMosques.includes(newName)) {
+      savedMosques.push(newName);
+      updateMosqueList();
+      newInput.value = '';
+      alert('تم حفظ المسجد: ' + newName);
+    } else if (savedMosques.includes(newName)) {
+      alert('هذا المسجد موجود مسبقاً');
+    } else {
+      alert('الرجاء كتابة اسم صحيح');
+    }
+  });
+
+  applyBtn.addEventListener('click', () => {
+    let selected = mosqueSelect.value;
+    if (selected) {
+      mosqueDisplay.innerText = selected;
+    }
+  });
+
+  updateMosqueList();
+
+  // ---------- التحكم بالصوت ----------
+  let volume = 50;
+  const volumeSpan = document.getElementById('volumeValue');
+  document.getElementById('volUp').onclick = () => {
+    volume = Math.min(100, volume + 5);
+    volumeSpan.innerText = volume + '%';
+  };
+  document.getElementById('volDown').onclick = () => {
+    volume = Math.max(0, volume - 5);
+    volumeSpan.innerText = volume + '%';
+  };
+
+  // ---------- أزرار الصعود والهبوط داخل الإعدادات (تمرير الصفحة) ----------
+  document.getElementById('scrollUpBtn').onclick = () => {
+    window.scrollBy({ top: -100, behavior: 'smooth' });
+  };
+  document.getElementById('scrollDownBtn').onclick = () => {
+    window.scrollBy({ top: 100, behavior: 'smooth' });
+  };
+
+  // ---------- زر الخروج ----------
+  document.getElementById('exitBtn').onclick = () => {
+    if (confirm('هل تريد الخروج من التطبيق؟')) {
+      window.close();
+      alert('تم الخروج (في المتصفح قد لا يعمل الإغلاق التلقائي)');
+    }
+  };
+</script>
+</body>
+</html>
