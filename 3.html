@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mosque Ultra PRO MAX</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
+
+body{
+background:#000;
+color:#fff;
+overflow:hidden;
+}
+
+/* BACKGROUND */
+#bg{
+position:fixed;
+inset:0;
+background-size:cover;
+background-position:center;
+filter:brightness(0.35);
+z-index:-1;
+}
+
+/* TICKER */
+#ticker{
+position:fixed;
+top:0;
+width:100%;
+background:#0a0a0a;
+padding:8px;
+overflow:hidden;
+white-space:nowrap;
+border-bottom:1px solid #333;
+z-index:1000;
+}
+
+#ticker span{
+display:inline-block;
+padding-left:100%;
+animation:move 18s linear infinite;
+}
+
+@keyframes move{
+0%{transform:translateX(0)}
+100%{transform:translateX(-100%)}
+}
+
+/* TOP BAR */
+#top{
+margin-top:40px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:10px;
+background:rgba(0,0,0,0.5);
+}
+
+#menuBtn{font-size:26px;cursor:pointer}
+
+/* SIDE MENU */
+#side{
+position:fixed;
+top:0;
+right:-320px;
+width:320px;
+height:100%;
+background:#111;
+padding:15px;
+transition:0.4s;
+overflow:auto;
+z-index:999;
+}
+
+#side.open{right:0}
+
+input,button{
+width:100%;
+padding:10px;
+margin-top:10px;
+border:none;
+border-radius:6px;
+}
+
+/* PRAYERS */
+#prayers{
+padding:10px;
+margin:10px;
+background:rgba(255,255,255,0.05);
+}
+
+.pr{
+display:flex;
+justify-content:space-between;
+padding:6px;
+border-bottom:1px solid #333;
+}
+
+/* ADHKAR */
+.card{
+margin:10px;
+padding:10px;
+background:rgba(255,255,255,0.05);
+border-radius:8px;
+}
+
+/* BLACK SCREEN */
+#black{
+position:fixed;
+inset:0;
+background:#000;
+display:none;
+justify-content:center;
+align-items:center;
+font-size:30px;
+z-index:2000;
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="ticker"><span id="tickerText"></span></div>
+
+<div id="bg"></div>
+
+<div id="top">
+<div id="menuBtn" onclick="toggle()">☰</div>
+<div id="title">مسجد النور</div>
+</div>
+
+<!-- SIDE MENU -->
+<div id="side">
+<h3>الإعدادات</h3>
+
+<input id="mosque" placeholder="اسم المسجد">
+<input id="city" placeholder="المدينة">
+
+<button onclick="save()">حفظ</button>
+
+<h3>الخلفية</h3>
+<input type="file" onchange="bgChange(event)">
+</div>
+
+<!-- PRAYERS -->
+<div id="prayers"></div>
+
+<!-- ADHKAR -->
+<div class="card">
+<h3>🌅 أذكار الصباح</h3>
+<p id="morning"></p>
+</div>
+
+<div class="card">
+<h3>🌙 أذكار المساء</h3>
+<p id="evening"></p>
+</div>
+
+<!-- BLACK SCREEN -->
+<div id="black">حان وقت الصلاة</div>
+
+<script>
+
+/* ===== DATA ===== */
+const morningAdhkar=[
+"اللهم بك أصبحنا وبك أمسينا وبك نحيا وبك نموت وإليك النشور",
+"أصبحنا على فطرة الإسلام وعلى كلمة الإخلاص وعلى دين نبينا محمد ﷺ",
+"آية الكرسي: الله لا إله إلا هو الحي القيوم...",
+"اللهم عافني في بدني وعافني في سمعي وبصري"
+];
+
+const eveningAdhkar=[
+"اللهم بك أمسينا وبك أصبحنا وبك نحيا وبك نموت وإليك المصير",
+"أمسينا على فطرة الإسلام وعلى كلمة الإخلاص...",
+"أعوذ بكلمات الله التامات من شر ما خلق",
+"رضيت بالله رباً وبالإسلام ديناً وبمحمد ﷺ نبياً"
+];
+
+const hadiths=[
+"قال رسول الله ﷺ: إنما الأعمال بالنيات",
+"قال رسول الله ﷺ: تبسمك في وجه أخيك صدقة",
+"قال رسول الله ﷺ: من كان يؤمن بالله واليوم الآخر فليقل خيراً أو ليصمت",
+"قال رسول الله ﷺ: المسلم من سلم المسلمون من لسانه ويده"
+];
+
+/* ===== MENU ===== */
+function toggle(){
+document.getElementById("side").classList.toggle("open");
+}
+
+/* ===== SAVE ===== */
+function save(){
+let m=document.getElementById("mosque").value;
+let c=document.getElementById("city").value;
+
+if(m)document.getElementById("title").innerText=m;
+
+localStorage.setItem("mosque",m);
+localStorage.setItem("city",c);
+
+load(c);
+}
+
+/* ===== BG ===== */
+function bgChange(e){
+let file=e.target.files[0];
+let r=new FileReader();
+r.onload=()=>{
+document.getElementById("bg").style.backgroundImage=`url(${r.result})`;
+}
+r.readAsDataURL(file);
+}
+
+/* ===== PRAYER API ===== */
+async function load(city="Casablanca"){
+let res=await fetch(`https://api.aladhan.com/v1/timingsByCity?city=${city}&country=MA&method=2`);
+let data=await res.json();
+let t=data.data.timings;
+
+let html="";
+for(let k in t){
+html+=`<div class="pr"><span>${k}</span><span>${t[k]}</span></div>`;
+}
+
+document.getElementById("prayers").innerHTML=html;
+
+checkPrayer(t);
+}
+
+/* ===== CHECK PRAYER ===== */
+function checkPrayer(t){
+setInterval(()=>{
+let now=new Date();
+let h=String(now.getHours()).padStart(2,'0');
+let m=String(now.getMinutes()).padStart(2,'0');
+let cur=h+":"+m;
+
+for(let k in t){
+if(t[k].slice(0,5)===cur){
+document.getElementById("black").style.display="flex";
+
+setTimeout(()=>{
+document.getElementById("black").style.display="none";
+},60000);
+}
+}
+},60000);
+}
+
+/* ===== ADHKAR ===== */
+document.getElementById("morning").innerHTML=morningAdhkar.join("<br><br>");
+document.getElementById("evening").innerHTML=eveningAdhkar.join("<br><br>");
+
+/* ===== TICKER ===== */
+let all=[...morningAdhkar,...eveningAdhkar,...hadiths];
+let i=0;
+
+function ticker(){
+document.getElementById("tickerText").innerText=all[i];
+i++;
+if(i>=all.length)i=0;
+}
+
+ticker();
+setInterval(ticker,7000);
+
+/* ===== LOAD ===== */
+window.onload=()=>{
+let m=localStorage.getItem("mosque");
+let c=localStorage.getItem("city");
+
+if(m)document.getElementById("title").innerText=m;
+
+load(c||"Casablanca");
+}
+
+</script>
+
+</body>
+</html>
