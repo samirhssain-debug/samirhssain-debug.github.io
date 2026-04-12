@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تطبيق المسجد المتكامل</title>
+
+<style>
+:root{
+  --bg:#000;
+  --card:#111;
+  --text:#fff;
+  --accent:#00c853;
+}
+
+body{
+  margin:0;
+  font-family:Arial;
+  background:var(--bg);
+  color:var(--text);
+  transition:0.5s;
+  overflow-x:hidden;
+}
+
+/* HEADER */
+header{
+  padding:10px;
+  text-align:center;
+  background:#111;
+  font-size:20px;
+}
+
+/* PRAYER AREA */
+#prayers{
+  padding:10px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+/* STYLE 1 */
+.style-vertical .prayer{
+  background:var(--card);
+  padding:15px;
+  border-radius:10px;
+  display:flex;
+  justify-content:space-between;
+  font-size:22px;
+}
+
+/* STYLE 2 CARDS */
+.style-cards .prayer{
+  background:linear-gradient(45deg,#222,#333);
+  padding:20px;
+  border-radius:15px;
+  font-size:20px;
+  border-left:5px solid var(--accent);
+}
+
+/* STYLE 3 TABLE */
+.style-table .prayer{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  background:#111;
+  padding:10px;
+  border-bottom:1px solid #333;
+}
+
+/* STYLE 4 MOSQUE MODE */
+.style-mosque .prayer{
+  display:none;
+}
+.style-mosque .next-prayer{
+  display:block;
+  font-size:50px;
+  text-align:center;
+  margin-top:40px;
+  color:var(--accent);
+}
+
+/* SETTINGS */
+#settings{
+  position:fixed;
+  bottom:10px;
+  left:10px;
+  background:#222;
+  padding:10px;
+  border-radius:10px;
+  width:250px;
+}
+
+select,button{
+  width:100%;
+  padding:8px;
+  margin-top:5px;
+}
+
+/* TICKER */
+#ticker{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  background:#111;
+  color:#0f0;
+  padding:5px;
+  white-space:nowrap;
+  overflow:hidden;
+}
+
+#ticker span{
+  display:inline-block;
+  animation:move 20s linear infinite;
+}
+
+@keyframes move{
+  from{transform:translateX(100%);}
+  to{transform:translateX(-100%);}
+}
+</style>
+</head>
+
+<body>
+
+<header>🕌 تطبيق المسجد</header>
+
+<div id="prayers" class="style-vertical">
+
+  <div class="prayer"><span>الفجر</span><span>05:10</span></div>
+  <div class="prayer"><span>الشروق</span><span>06:45</span></div>
+  <div class="prayer"><span>الظهر</span><span>13:30</span></div>
+  <div class="prayer"><span>العصر</span><span>17:00</span></div>
+  <div class="prayer"><span>المغرب</span><span>19:20</span></div>
+  <div class="prayer"><span>العشاء</span><span>20:45</span></div>
+
+  <div class="next-prayer">الصلاة القادمة: الظهر</div>
+
+</div>
+
+<!-- SETTINGS -->
+<div id="settings">
+  ⚙️ الإعدادات
+
+  <label>شكل الصلوات</label>
+  <select id="styleSelect">
+    <option value="style-vertical">عمودي</option>
+    <option value="style-cards">بطاقات</option>
+    <option value="style-table">جدول</option>
+    <option value="style-mosque">مسجد (كبير)</option>
+  </select>
+
+  <label>الثيم</label>
+  <select id="themeSelect">
+    <option value="dark">داكن</option>
+    <option value="green">أخضر</option>
+    <option value="blue">أزرق</option>
+  </select>
+
+  <button onclick="applySettings()">تطبيق</button>
+</div>
+
+<!-- TICKER -->
+<div id="ticker">
+  <span>📿 سبحان الله - الحمد لله - لا إله إلا الله - الله أكبر - استغفر الله... </span>
+</div>
+
+<script>
+function applySettings(){
+
+  let style = document.getElementById('styleSelect').value;
+  let theme = document.getElementById('themeSelect').value;
+
+  let box = document.getElementById('prayers');
+
+  box.className = style;
+
+  // themes
+  if(theme === "dark"){
+    document.documentElement.style.setProperty('--bg','#000');
+    document.documentElement.style.setProperty('--card','#111');
+  }
+
+  if(theme === "green"){
+    document.documentElement.style.setProperty('--bg','#001a10');
+    document.documentElement.style.setProperty('--accent','#00e676');
+  }
+
+  if(theme === "blue"){
+    document.documentElement.style.setProperty('--bg','#001b33');
+    document.documentElement.style.setProperty('--accent','#40c4ff');
+  }
+}
+</script>
+
+</body>
+</html>
