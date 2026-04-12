@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مسجد النور - أوقات الصلاة</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c2c 0%, #2a4a35 100%);
+            min-height: 100vh;
+            padding: 20px;
+            transition: background 0.3s ease;
+        }
+
+        /* الوضع العادي */
+        body.normal-mode {
+            background: linear-gradient(135deg, #1e3c2c 0%, #2a4a35 100%);
+        }
+
+        /* الشاشة السوداء للصلاة */
+        body.black-screen {
+            background: #000000 !important;
+        }
+
+        body.black-screen * {
+            color: white !important;
+            border-color: #333 !important;
+        }
+
+        body.black-screen .settings-panel,
+        body.black-screen .prayer-table,
+        body.black-screen .adhkar-box {
+            background: rgba(0,0,0,0.9) !important;
+            border-color: #333 !important;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* ترويسة المسجد مع الصورة */
+        .masjid-header {
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .masjid-image {
+            width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: none;
+        }
+
+        .masjid-image.show {
+            display: block;
+        }
+
+        .masjid-name {
+            font-size: 2rem;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin-top: 10px;
+        }
+
+        /* لوحة الإعدادات */
+        .settings-panel {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #1e3c2c;
+        }
+
+        .settings-content {
+            display: none;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px dashed #ddd;
+        }
+
+        .settings-content.open {
+            display: block;
+        }
+
+        .setting-group {
+            margin-bottom: 15px;
+        }
+
+        .setting-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #1e3c2c;
+        }
+
+        .setting-group input, 
+        .setting-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+
+        .setting-group input[type="file"] {
+            padding: 8px;
+        }
+
+        .setting-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .btn-primary {
+            background: #2e7d32;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1b5e20;
+        }
+
+        .btn-danger {
+            background: #c62828;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ff8f00;
+            color: white;
+        }
+
+        /* العد التنازلي */
+        .countdown {
+            background: rgba(0,0,0,0.7);
+            color: #ffd700;
+            text-align: center;
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .countdown .time {
+            font-size: 2rem;
+            font-weight: bold;
+            direction: ltr;
+        }
+
+        /* جدول الصلوات */
+        .prayer-table {
+            width: 100%;
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .prayer-table th, .prayer-table td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .prayer-table th {
+            background: #2e7d32;
+            color: white;
+        }
+
+        .prayer-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* أذكار */
+        .adhkar-box {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .adhkar-text {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: #1e3c2c;
+        }
+
+        /* الشاشة السوداء */
+        .fullscreen-black {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            z-index: 9999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: white;
+            font-size: 3rem;
+        }
+
+        .fullscreen-black.active {
+            display: flex;
+        }
+
+        .close-fullscreen {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 600px) {
+            .masjid-name { font-size: 1.5rem; }
+            .countdown .time { font-size: 1.5rem; }
+            .fullscreen-black { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- رأس المسجد مع الصورة -->
+        <div class="masjid-header">
+            <img id="masjidImg" class="masjid-image" alt="صورة المسجد">
+            <h1 class="masjid-name">🕌 مسجد النور</h1>
+            <p id="hijriDate" style="color: #ffd700; margin-top: 5px;"></p>
+        </div>
+
+        <!-- لوحة الإعدادات -->
+        <div class="settings-panel">
+            <div class="settings-header" onclick="toggleSettings()">
+                <span>⚙️ الإعدادات</span>
+                <span>▼</span>
+            </div>
+            <div id="settingsContent" class="settings-content">
+                <div class="setting-group">
+                    <label>📸 تحميل صورة المسجد</label>
+                    <input type="file" id="imageUpload" accept="image/*">
+                    <button class="btn btn-primary" style="margin-top: 10px;" onclick="uploadImage()">تطبيق الصورة</button>
+                    <button class="btn btn-warning" onclick="removeImage()">إزالة الصورة</button>
+                </div>
+
+                <div class="setting-group">
+                    <label>🎨 لون الخلفية</label>
+                    <input type="color" id="bgColor" value="#1e3c2c">
+                    <button class="btn btn-primary" style="margin-top: 10px;" onclick="changeBgColor()">تطبيق اللون</button>
+                </div>
+
+                <div class="setting-group">
+                    <label>📏 حجم الخط</label>
+                    <select id="fontSize">
+                        <option value="16">صغير</option>
+                        <option value="18" selected>وسط</option>
+                        <option value="22">كبير</option>
+                        <option value="26">كبير جداً</option>
+                    </select>
+                    <button class="btn btn-primary" style="margin-top: 10px;" onclick="changeFontSize()">تطبيق</button>
+                </div>
+
+                <div class="setting-group">
+                    <label>🌙 التاريخ الهجري</label>
+                    <select id="hijriAdjust">
+                        <option value="0">بدون تعديل</option>
+                        <option value="1">+1 يوم</option>
+                        <option value="-1">-1 يوم</option>
+                    </select>
+                </div>
+
+                <div class="setting-buttons">
+                    <button class="btn btn-primary" onclick="toggleBlackScreen()">🖤 شاشة سوداء (صلاة)</button>
+                    <button class="btn btn-warning" onclick="toggleFullscreenBlack()">📺 شاشة سوداء كاملة</button>
+                    <button class="btn btn-danger" onclick="resetSettings()">🔄 إعادة ضبط الإعدادات</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- العد التنازلي -->
+        <div class="countdown">
+            <div>⏰ الوقت المتبقي لأذان <span id="nextPrayerName">المغرب</span></div>
+            <div class="time" id="countdownTimer">-- : -- : --</div>
+        </div>
+
+        <!-- جدول الصلوات -->
+        <table class="prayer-table" id="prayerTable">
+            <thead>
+                <tr><th>الصلاة</th><th>الأذان</th><th>الإقامة</th><th>الفرق</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>الفجر</td><td id="fajrAdhan">04:00</td><td id="fajrIqama">04:34</td><td>34</td></tr>
+                <tr><td>الظهر</td><td id="dhuhrAdhan">11:56</td><td id="dhuhrIqama">12:01</td><td>5</td></tr>
+                <tr><td>العصر</td><td id="asrAdhan">15:29</td><td id="asrIqama">15:34</td><td>5</td></tr>
+                <tr><td>المغرب</td><td id="maghribAdhan">17:10</td><td id="maghribIqama">17:15</td><td>5</td></tr>
+                <tr><td>العشاء</td><td id="ishaAdhan">18:40</td><td id="ishaIqama">18:45</td><td>5</td></tr>
+            </tbody>
+        </table>
+
+        <!-- أذكار الصباح -->
+        <div class="adhkar-box">
+            <h3>📿 أذكار الصباح</h3>
+            <div class="adhkar-text" id="adhkarText">
+                سبحان الله وبحمده - سبحان الله العظيم<br>
+                لا إله إلا الله وحده لا شريك له، له الملك وله الحمد وهو على كل شيء قدير<br>
+                أصبحنا وأصبح الملك لله، والحمد لله...
+            </div>
+            <button class="btn btn-primary" style="margin-top: 10px;" onclick="refreshAdhkar()">تحديث الأذكار</button>
+        </div>
+    </div>
+
+    <!-- شاشة سوداء كاملة -->
+    <div id="fullscreenBlack" class="fullscreen-black">
+        <button class="close-fullscreen" onclick="closeFullscreenBlack()">✖ إغلاق</button>
+        <div>🕌 مسجد النور</div>
+        <div id="fullscreenTime" style="font-size: 4rem; margin-top: 20px;"></div>
+        <div style="margin-top: 20px;">وقت الصلاة</div>
+    </div>
+
+    <script>
+        // ========== بيانات الصلاة ==========
+        let prayers = [
+            { name: "الفجر", adhan: "04:00", iqama: "04:34" },
+            { name: "الظهر", adhan: "11:56", iqama: "12:01" },
+            { name: "العصر", adhan: "15:29", iqama: "15:34" },
+            { name: "المغرب", adhan: "17:10", iqama: "17:15" },
+            { name: "العشاء", adhan: "18:40", iqama: "18:45" }
+        ];
+
+        // تحويل الوقت إلى دقائق
+        function timeToMinutes(time) {
+            let [h, m] = time.split(':');
+            return parseInt(h) * 60 + parseInt(m);
+        }
+
+        // الحصول على الصلاة التالية
+        function getNextPrayer() {
+            let now = new Date();
+            let nowMinutes = now.getHours() * 60 + now.getMinutes();
+            for (let p of prayers) {
+                if (timeToMinutes(p.adhan) > nowMinutes) {
+                    return p;
+                }
+            }
+            return prayers[0]; // يعيد الفجر لليوم التالي
+        }
+
+        // تحديث العد التنازلي
+        function updateCountdown() {
+            let next = getNextPrayer();
+            document.getElementById('nextPrayerName').innerText = next.name;
+            
+            let now = new Date();
+            let target = new Date();
+            let [th, tm] = next.adhan.split(':');
+            target.setHours(parseInt(th), parseInt(tm), 0);
+            
+            if (target < now) {
+                target.setDate(target.getDate() + 1);
+            }
+            
+            let diff = target - now;
+            let hours = Math.floor(diff / 3600000);
+            let minutes = Math.floor((diff % 3600000) / 60000);
+            let seconds = Math.floor((diff % 60000) / 1000);
+            
+            document.getElementById('countdownTimer').innerHTML = 
+                `${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+            
+            // تحديث الشاشة السوداء
+            document.getElementById('fullscreenTime').innerHTML = 
+                `${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+        }
+
+        // التاريخ الهجري (تقريبي)
+        function updateHijri() {
+            let adjust = parseInt(document.getElementById('hijriAdjust').value);
+            let date = new Date();
+            date.setDate(date.getDate() + adjust);
+            let options = { year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('hijriDate').innerHTML = `📅 ${date.toLocaleDateString('ar-EG-u-ca-islamic', options)} هـ`;
+        }
+
+        // ========== وظائف الإعدادات ==========
+        function toggleSettings() {
+            let content = document.getElementById('settingsContent');
+            content.classList.toggle('open');
+        }
+
+        // تحميل الصورة
+        function uploadImage() {
+            let fileInput = document.getElementById('imageUpload');
+            let file = fileInput.files[0];
+            if (file) {
+                let reader = new FileReader();
+                reader.onload = function(e) {
+                    let img = document.getElementById('masjidImg');
+                    img.src = e.target.result;
+                    img.classList.add('show');
+                    localStorage.setItem('masjidImage', e.target.result);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                alert('الرجاء اختيار صورة أولاً');
+            }
+        }
+
+        function removeImage() {
+            let img = document.getElementById('masjidImg');
+            img.classList.remove('show');
+            img.src = '';
+            localStorage.removeItem('masjidImage');
+        }
+
+        // تغيير لون الخلفية
+        function changeBgColor() {
+            let color = document.getElementById('bgColor').value;
+            document.body.style.background = color;
+            localStorage.setItem('bgColor', color);
+            document.body.classList.remove('black-screen');
+        }
+
+        // تغيير حجم الخط
+        function changeFontSize() {
+            let size = document.getElementById('fontSize').value;
+            document.body.style.fontSize = size + 'px';
+            localStorage.setItem('fontSize', size);
+        }
+
+        // شاشة سوداء (نمط الجسم)
+        function toggleBlackScreen() {
+            document.body.classList.toggle('black-screen');
+            if (document.body.classList.contains('black-screen')) {
+                localStorage.setItem('blackScreen', 'true');
+            } else {
+                localStorage.setItem('blackScreen', 'false');
+            }
+        }
+
+        // شاشة سوداء كاملة (fullscreen overlay)
+        function toggleFullscreenBlack() {
+            let overlay = document.getElementById('fullscreenBlack');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeFullscreenBlack() {
+            let overlay = document.getElementById('fullscreenBlack');
+            overlay.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // تحديث الأذكار
+        function refreshAdhkar() {
+            let adhkarList = [
+                "سبحان الله وبحمده - سبحان الله العظيم",
+                "لا إله إلا الله وحده لا شريك له، له الملك وله الحمد وهو على كل شيء قدير",
+                "أستغفر الله وأتوب إليه",
+                "حسبي الله لا إله إلا هو عليه توكلت وهو رب العرش العظيم",
+                "اللهم صل على محمد وعلى آل محمد"
+            ];
+            let random = adhkarList[Math.floor(Math.random() * adhkarList.length)];
+            document.getElementById('adhkarText').innerHTML = random + "<br><br>" + adhkarList[0];
+        }
+
+        // إعادة ضبط الإعدادات
+        function resetSettings() {
+            localStorage.clear();
+            document.body.style.background = "linear-gradient(135deg, #1e3c2c 0%, #2a4a35 100%)";
+            document.body.style.fontSize = "";
+            document.body.classList.remove('black-screen');
+            document.getElementById('bgColor').value = "#1e3c2c";
+            document.getElementById('fontSize').value = "18";
+            removeImage();
+            alert('تم إعادة ضبط جميع الإعدادات');
+        }
+
+        // تحميل الإعدادات المحفوظة
+        function loadSettings() {
+            let savedImage = localStorage.getItem('masjidImage');
+            if (savedImage) {
+                let img = document.getElementById('masjidImg');
+                img.src = savedImage;
+                img.classList.add('show');
+            }
+            let savedBg = localStorage.getItem('bgColor');
+            if (savedBg) {
+                document.body.style.background = savedBg;
+            }
+            let savedFont = localStorage.getItem('fontSize');
+            if (savedFont) {
+                document.body.style.fontSize = savedFont + 'px';
+                document.getElementById('fontSize').value = savedFont;
+            }
+            let savedBlack = localStorage.getItem('blackScreen');
+            if (savedBlack === 'true') {
+                document.body.classList.add('black-screen');
+            }
+        }
+
+        // تشغيل التحديثات
+        setInterval(updateCountdown, 1000);
+        setInterval(updateHijri, 60000);
+        updateCountdown();
+        updateHijri();
+        loadSettings();
+    </script>
+</body>
+</html>
