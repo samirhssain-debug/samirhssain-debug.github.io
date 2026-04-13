@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مسجد Ultra Pro MAX</title>
+
+<style>
+body{
+margin:0;
+font-family:Arial;
+background:#000;
+color:#fff;
+transition:0.5s;
+overflow:hidden;
+}
+
+/* FULLSCREEN */
+.fullscreen-btn{
+position:fixed;
+top:10px;
+left:10px;
+z-index:9999;
+background:#000;
+color:#ffd700;
+border:1px solid #ffd700;
+padding:10px;
+border-radius:10px;
+cursor:pointer;
+}
+
+/* ZOOM */
+.zoom-controls{
+position:fixed;
+top:60px;
+left:10px;
+z-index:9999;
+display:flex;
+flex-direction:column;
+gap:5px;
+}
+
+.zoom-controls button{
+background:#000;
+color:#ffd700;
+border:1px solid #ffd700;
+padding:8px;
+border-radius:8px;
+cursor:pointer;
+}
+
+/* HEADER */
+.header{
+text-align:center;
+font-size:35px;
+color:#ffd700;
+margin-top:20px;
+}
+
+/* CLOCK */
+.clock{
+text-align:center;
+font-size:55px;
+margin-top:10px;
+}
+
+/* COUNTDOWN */
+.countdown{
+text-align:center;
+font-size:30px;
+color:#00ffcc;
+}
+
+/* DUA */
+.dua{
+text-align:center;
+margin-top:10px;
+font-size:22px;
+}
+
+/* PRAYERS */
+.prayers{
+display:flex;
+flex-direction:column;
+gap:15px;
+padding:20px;
+}
+
+.prayer{
+display:flex;
+justify-content:space-between;
+align-items:center;
+background:rgba(0,0,0,0.6);
+padding:15px;
+border-radius:15px;
+border:1px solid #ffd700;
+}
+
+.prayer-name{
+font-size:30px;
+}
+
+.prayer-time{
+font-size:35px;
+color:#00ffcc;
+}
+
+.prayer-iqama{
+font-size:20px;
+color:#ffaa00;
+}
+
+/* SETTINGS */
+.settings{
+position:fixed;
+right:0;
+top:0;
+width:300px;
+height:100%;
+background:#111;
+overflow:auto;
+padding:10px;
+display:none;
+z-index:9999;
+}
+
+input,button{
+width:100%;
+margin:5px 0;
+padding:8px;
+border-radius:8px;
+border:none;
+}
+
+button{
+background:#ffd700;
+cursor:pointer;
+}
+
+/* QURAN BAR */
+.quran-bar{
+position:fixed;
+bottom:0;
+width:100%;
+background:#000;
+color:#00ffcc;
+font-size:24px;
+overflow:hidden;
+white-space:nowrap;
+border-top:1px solid #ffd700;
+}
+
+.quran-text{
+display:inline-block;
+padding-left:100%;
+animation:scrollQuran 20s linear infinite;
+}
+
+@keyframes scrollQuran{
+0%{transform:translateX(0);}
+100%{transform:translateX(-100%);}
+}
+</style>
+</head>
+
+<body>
+
+<button class="fullscreen-btn" onclick="toggleFullscreen()">⛶</button>
+
+<div class="zoom-controls">
+<button onclick="changeZoom(0.9)">-</button>
+<button onclick="changeZoom(1)">⭮</button>
+<button onclick="changeZoom(1.1)">+</button>
+</div>
+
+<div class="header" id="mosqueName">🕌 مسجد النور</div>
+
+<div class="clock" id="clock"></div>
+<div class="countdown" id="countdown"></div>
+
+<div class="dua">اللهم اجعلنا من عتقائك من النار</div>
+
+<div class="prayers">
+<div class="prayer"><div class="prayer-name">الفجر</div><div class="prayer-time" id="fajr">05:10</div><div class="prayer-iqama" id="fajrIq">+10</div></div>
+<div class="prayer"><div class="prayer-name">الظهر</div><div class="prayer-time" id="dhuhr">13:30</div><div class="prayer-iqama" id="dhuhrIq">+10</div></div>
+<div class="prayer"><div class="prayer-name">العصر</div><div class="prayer-time" id="asr">16:40</div><div class="prayer-iqama" id="asrIq">+10</div></div>
+<div class="prayer"><div class="prayer-name">المغرب</div><div class="prayer-time" id="maghrib">19:10</div><div class="prayer-iqama" id="maghribIq">+10</div></div>
+<div class="prayer"><div class="prayer-name">العشاء</div><div class="prayer-time" id="isha">20:30</div><div class="prayer-iqama" id="ishaIq">+10</div></div>
+</div>
+
+<button onclick="toggleSettings()" style="position:fixed;bottom:60px;right:10px;">⚙️</button>
+
+<!-- QURAN -->
+<div class="quran-bar">
+<div class="quran-text" id="quranText"></div>
+</div>
+
+<!-- SETTINGS -->
+<div class="settings" id="settings">
+<h3>⚙️ الإعدادات</h3>
+
+<input type="text" id="mosqueInput" placeholder="اسم المسجد">
+
+<label>أوقات الصلاة</label>
+<input type="time" id="fajrSet">
+<input type="time" id="dhuhrSet">
+<input type="time" id="asrSet">
+<input type="time" id="maghribSet">
+<input type="time" id="ishaSet">
+
+<label>الإقامة (دقائق)</label>
+<input type="number" id="iqama" value="10">
+
+<input type="file" onchange="changeBg(event)">
+
+<button onclick="saveSettings()">💾 حفظ</button>
+</div>
+
+<script>
+
+/* CLOCK */
+setInterval(()=>{
+document.getElementById("clock").innerText =
+new Date().toLocaleTimeString();
+},1000);
+
+/* FULLSCREEN */
+function toggleFullscreen(){
+if(!document.fullscreenElement){
+document.documentElement.requestFullscreen();
+}else{
+document.exitFullscreen();
+}
+}
+
+/* ZOOM */
+let zoom=1;
+function changeZoom(f){
+zoom*=f;
+document.body.style.transform="scale("+zoom+")";
+document.body.style.transformOrigin="top right";
+}
+
+/* SETTINGS */
+function toggleSettings(){
+let s=document.getElementById("settings");
+s.style.display = s.style.display==="block"?"none":"block";
+}
+
+/* SAVE */
+function saveSettings(){
+localStorage.setItem("mosque",mosqueInput.value);
+
+let times=["fajr","dhuhr","asr","maghrib","isha"];
+times.forEach(t=>{
+let val=document.getElementById(t+"Set").value;
+if(val){
+localStorage.setItem(t,val);
+document.getElementById(t).innerText=val;
+}
+});
+
+let iq=document.getElementById("iqama").value;
+localStorage.setItem("iqama",iq);
+
+times.forEach(t=>{
+document.getElementById(t+"Iq").innerText="+"+iq;
+});
+
+alert("تم الحفظ ✅");
+}
+
+/* LOAD */
+window.onload=()=>{
+let m=localStorage.getItem("mosque");
+if(m) mosqueName.innerText="🕌 "+m;
+
+let times=["fajr","dhuhr","asr","maghrib","isha"];
+times.forEach(t=>{
+let val=localStorage.getItem(t);
+if(val) document.getElementById(t).innerText=val;
+});
+
+let iq=localStorage.getItem("iqama");
+if(iq){
+times.forEach(t=>{
+document.getElementById(t+"Iq").innerText="+"+iq;
+});
+}
+};
+
+/* BACKGROUND */
+function changeBg(e){
+let file=e.target.files[0];
+let reader=new FileReader();
+reader.onload=function(){
+document.body.style.background="url("+reader.result+") center/cover";
+}
+reader.readAsDataURL(file);
+}
+
+/* COUNTDOWN */
+function getNextPrayer(){
+let times=["fajr","dhuhr","asr","maghrib","isha"];
+let now=new Date();
+
+for(let t of times){
+let txt=document.getElementById(t).innerText;
+let [h,m]=txt.split(":");
+let d=new Date();
+d.setHours(h,m,0);
+if(d>now) return d;
+}
+return null;
+}
+
+setInterval(()=>{
+let next=getNextPrayer();
+if(!next) return;
+
+let diff=(next-new Date())/1000;
+let m=Math.floor(diff/60);
+let s=Math.floor(diff%60);
+
+countdown.innerText="⏳ المتبقي: "+m+":"+s;
+},1000);
+
+/* BLACK SCREEN */
+setInterval(()=>{
+let fajr=document.getElementById("fajr").innerText;
+let now=new Date();
+let [h,m]=fajr.split(":");
+let d=new Date();
+d.setHours(h,m,0);
+
+let diff=(d-now)/60000;
+
+if(diff<5 && diff>0){
+document.body.style.background="#000";
+}
+},1000);
+
+/* QURAN */
+let ayat=[
+"﴿ إِنَّ اللَّهَ مَعَ الصَّابِرِينَ ﴾",
+"﴿ فَاذْكُرُونِي أَذْكُرْكُمْ ﴾",
+"﴿ إِنَّ مَعَ الْعُسْرِ يُسْرًا ﴾",
+"﴿ وَاللَّهُ خَيْرُ الرَّازِقِينَ ﴾",
+"﴿ رَبِّ زِدْنِي عِلْمًا ﴾"
+];
+
+function changeAyah(){
+quranText.innerText=ayat[Math.floor(Math.random()*ayat.length)];
+}
+
+changeAyah();
+setInterval(changeAyah,15000);
+
+</script>
+
+</body>
+</html>
