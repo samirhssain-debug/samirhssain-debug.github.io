@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شاشة مسجد</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
+
+        :root {
+            --main-color: #d4af37;
+            --bg-overlay: rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #000;
+            background-size: cover;
+            background-position: center;
+            color: white;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            transition: background-color 0.5s;
+        }
+
+        /* ثيمات مع الخلفية */
+        body.theme-green { background-color: #003300; }
+        body.theme-gold { background-color: #332b00; }
+        body.theme-blue { background-color: #001a33; }
+        body.theme-white { background-color: #1a1a1a; }
+        body.theme-red { background-color: #330000; }
+        body.theme-purple { background-color: #1a0033; }
+        body.theme-orange { background-color: #331400; }
+        body.theme-pink { background-color: #330019; }
+        body.theme-cyan { background-color: #003333; }
+        body.theme-silver { background-color: #1a1a1a; }
+
+        body.has-mosque-image {
+            background-color: transparent!important;
+        }
+
+       .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-overlay);
+            z-index: 1;
+        }
+
+       .container {
+            position: relative;
+            z-index: 2;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 2vh 3vw;
+        }
+
+        /* الهيدر */
+       .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2vh;
+        }
+
+       .side-info {
+            font-size: 3vh;
+            font-weight: 600;
+            color: var(--main-color);
+            padding: 1vh 2vh;
+            border: 2px solid var(--main-color);
+            border-radius: 15px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+       .date-info {
+            text-align: center;
+            font-size: 3.5vh;
+            font-weight: 600;
+        }
+
+        /* الساعة مكبرة ومطلعة */
+       .clock {
+            font-size: 15vh!important;
+            font-weight: 900;
+            text-align: center;
+            margin-top: -3vh!important;
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+            letter-spacing: 2px;
+        }
+
+        /* الآية مكبرة */
+       .verse-container {
+            text-align: center;
+            margin: 3vh 0;
+        }
+
+       .verse-text {
+            font-size: 6.5vh!important;
+            font-weight: 700;
+            color: var(--main-color);
+            line-height: 1.6;
+            text-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+        }
+
+        /* أوقات الصلاة */
+       .prayers-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 2vh;
+            margin-top: auto;
+            padding-bottom: 2vh;
+        }
+
+       .prayer-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--main-color);
+            border-radius: 20px;
+            padding: 2vh 1vh;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+       .prayer-card.active {
+            background: rgba(212, 175, 55, 0.2);
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.6);
+            transform: scale(1.05);
+        }
+
+       .prayer-name {
+            font-size: 3vh;
+            font-weight: 700;
+            margin-bottom: 1vh;
+            color: var(--main-color);
+        }
+
+       .prayer-time {
+            font-size: 4vh;
+            font-weight: 900;
+        }
+
+        /* عداد ملء الشاشة */
+       .countdown-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+       .countdown-overlay.show {
+            display: flex;
+        }
+
+       .countdown-text {
+            font-size: 6vh;
+            margin-bottom: 3vh;
+            color: var(--main-color);
+        }
+
+       .countdown-number {
+            font-size: 25vh;
+            font-weight: 900;
+            color: var(--main-color);
+        }
+
+        /* عداد الأذان: أحمر لمعان */
+       .countdown-overlay.adhan-countdown {
+            background: #ff0000;
+        }
+       .countdown-overlay.adhan-countdown.countdown-number {
+            color: #ff0000;
+            animation: blink 1s infinite;
+            text-shadow: 0 0 30px #ff0000;
+        }
+
+        /* عداد الإقامة الدقيقة الأخيرة: دائرة خضراء + أرقام حمراء + لمعان */
+       .countdown-overlay.iqama-last-minute {
+            background: #000;
+        }
+       .countdown-overlay.iqama-last-minute.countdown-number {
+            color: #ff0000;
+            border: 8px solid #00ff00;
+            border-radius: 50%;
+            width: 40vh;
+            height: 40vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: blink 1s infinite;
+            box-shadow: 0 0 40px #00ff00;
+        }
+
+        /* الأذان سطر بسطر */
+       .adhan-line {
+            font-size: 12vh;
+            color: var(--main-color);
+            font-weight: 900;
+            text-align: center;
+            animation: fadeInOut 3s;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: scale(0.8); }
+            20% { opacity: 1; transform: scale(1); }
+            80% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.8); }
+        }
+
+       .prayer-active-text {
+            font-size: 15vh;
+            font-weight: 900;
+            color: var(--main-color);
+            animation: blink 1s infinite;
+        }
+
+       .adhkar-text {
+            font-size: 8vh;
+            font-weight: 700;
+            text-align: center;
+            padding: 5vh;
+            line-height: 1.8;
+        }
+
+        /* الإعدادات */
+       .settings-btn {
+            position: fixed;
+            bottom: 2vh;
+            left: 2vh;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--main-color);
+            color: var(--main-color);
+            padding: 1vh 2vh;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 2vh;
+            font-family: 'Cairo', sans-serif;
+        }
+
+       .settings-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(20, 20, 20, 0.98);
+            border: 3px solid var(--main-color);
+            border-radius: 20px;
+            padding: 4vh;
+            z-index: 10000;
+            display: none;
+            max-height: 90vh;
+            overflow-y: auto;
+            width: 90vw;
+            max-width: 600px;
+        }
+
+       .settings-panel.show {
+            display: block;
+        }
+
+       .settings-panel h2 {
+            color: var(--main-color);
+            margin-bottom: 2vh;
+            text-align: center;
+        }
+
+       .setting-group {
+            margin-bottom: 2vh;
+        }
+
+       .setting-group label {
+            display: block;
+            margin-bottom: 0.5vh;
+            font-weight: 600;
+        }
+
+       .setting-group input,.setting-group select {
+            width: 100%;
+            padding: 1vh;
+            border: 1px solid var(--main-color);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            font-family: 'Cairo', sans-serif;
+            font-size: 2vh;
+        }
+
+       .btn-group {
+            display: flex;
+            gap: 1vh;
+            margin-top: 2vh;
+        }
+
+       .btn {
+            flex: 1;
+            padding: 1.5vh;
+            border: 2px solid var(--main-color);
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            color: var(--main-color);
+            font-family: 'Cairo', sans-serif;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+       .btn:hover {
+            background: var(--main-color);
+            color: #000;
+        }
+
+       .theme-colors {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1vh;
+            margin-top: 1vh;
+        }
+
+       .color-box {
+            height: 4vh;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+       .color-box.active {
+            border-color: white;
+            box-shadow: 0 0 10px white;
+        }
+    </style>
+</head>
+<body class="theme-gold">
+    <div class="overlay"></div>
+
+    <div class="container">
+        <div class="header">
+            <div class="side-info side-left" id="jumuahInfo">الجمعة: 12:30</div>
+            <div class="date-info" id="dateCombined">جاري التحميل...</div>
+            <div class="side-info side-right" id="nextPrayer">التالي: --</div>
+        </div>
+
+        <div class="clock" id="clock">00:00:00</div>
+
+        <div class="verse-container">
+            <div class="verse-text">إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَّوْقُوتًا</div>
+        </div>
+
+        <div class="prayers-grid" id="prayersGrid"></div>
+    </div>
+
+    <button class="settings-btn" onclick="toggleSettings()">⚙️ الإعدادات</button>
+
+    <div class="countdown-overlay" id="countdownOverlay">
+        <div class="countdown-text" id="countdownLabel"></div>
+        <div class="countdown-number" id="countdownNumber"></div>
+        <div class="prayer-active-text" id="prayerActiveText" style="display:none;">... الصلاة قائمة...</div>
+        <div class="adhkar-text" id="adhkarText" style="display:none;"></div>
+    </div>
+
+    <div class="settings-panel" id="settingsPanel">
+        <h2>الإعدادات</h2>
+
+        <div class="setting-group">
+            <label>المدينة:</label>
+            <select id="citySelect" onchange="updateCity()">
+                <option value="fes">فاس</option>
+                <option value="rabat">الرباط</option>
+                <option value="casablanca">الدار البيضاء</option>
+                <option value="marrakech">مراكش</option>
+            </select>
+        </div>
+
+        <div class="setting-group">
+            <label>لون الثيم:</label>
+            <div class="theme-colors" id="themeColors"></div>
+        </div>
+
+        <div class="setting-group">
+            <label>صورة المسجد:</label>
+            <input type="file" id="mosqueImageInput" accept="image/*" onchange="uploadMosqueImage(event)">
+            <button class="btn" onclick="removeMosqueImage()" style="margin-top: 1vh;">إزالة الصورة</button>
+        </div>
+
+        <div class="setting-group">
+            <label>وقت خطبة الجمعة:</label>
+            <input type="time" id="jumuahTime" value="12:30">
+        </div>
+
+        <div class="setting-group">
+            <label>مدة الصلاة (دقائق):</label>
+            <input type="number" id="prayerDuration" value="10" min="5" max="30">
+        </div>
+
+        <div id="prayersSettings"></div>
+
+        <div class="btn-group">
+            <button class="btn" onclick="saveSettings()">حفظ</button>
+            <button class="btn" onclick="toggleSettings()">إغلاق</button>
+        </div>
+    </div>
+
+    <script>
+        let settings = {
+            city: 'fes',
+            theme: 'gold',
+            jumuahEnabled: true,
+            jumuahKhutbah: '12:30',
+            prayerDuration: 10,
+            prayers: {
+                fajr: { adhan: '05:30', iqama: 20 },
+                shuruk: { adhan: '07:00', iqama: 0 },
+                dhuhr: { adhan: '12:45', iqama: 15 },
+                asr: { adhan: '16:00', iqama: 15 },
+                maghrib: { adhan: '18:30', iqama: 10 },
+                isha: { adhan: '20:00', iqama: 15 }
+            }
+        };
+
+        let countdownInterval;
+        let currentPrayerState = null;
+        let adhanLines = [
+            'الله أكبر الله أكبر',
+            'الله أكبر الله أكبر',
+            'أشهد أن لا إله إلا الله',
+            'أشهد أن لا إله إلا الله',
+            'أشهد أن محمدا رسول الله',
+            'أشهد أن محمدا رسول الله',
+            'حي على الصلاة',
+            'حي على الصلاة',
+            'حي على الفلاح',
+            'حي على الفلاح',
+            'الله أكبر الله أكبر',
+            'لا إله إلا الله'
+        ];
+        let currentAdhanLine = 0;
+
+        const themes = [
+            { name: 'green', color: '#00ff00' },
+            { name: 'gold', color: '#d4af37' },
+            { name: 'blue', color: '#0066ff' },
+            { name: 'white', color: '#ffffff' },
+            { name: 'red', color: '#ff0000' },
+            { name: 'purple', color: '#9d00ff' },
+            { name: 'orange', color: '#ff6600' },
+            { name: 'pink', color: '#ff00ff' },
+            { name: 'cyan', color: '#00ffff' },
+            { name: 'silver', color: '#c0c0c0' }
+        ];
+
+        function init() {
+            loadSettings();
+            setupThemeColors();
+            setupPrayersSettings();
+            updateClock();
+            setInterval(updateClock, 1000);
+
+            const savedImage = localStorage.getItem('mosqueBackground');
+            if (savedImage) {
+                document.body.style.backgroundImage = `url(${savedImage})`;
+                document.body.classList.add('has-mosque-image');
+            }
+        }
+
+        function loadSettings() {
+            const saved = localStorage.getItem('mosqueSettings');
+            if (saved) {
+                settings = JSON.parse(saved);
+            }
+            applySettings();
+        }
+
+        function applySettings() {
+            document.body.className = `theme-${settings.theme}`;
+            document.getElementById('citySelect').value = settings.city;
+            document.getElementById('jumuahTime').value = settings.jumuahKhutbah;
+            document.getElementById('prayerDuration').value = settings.prayerDuration;
+            renderPrayers();
+        }
+
+        function setupThemeColors() {
+            const container = document.getElementById('themeColors');
+            container.innerHTML = '';
+            themes.forEach(t => {
+                const box = document.createElement('div');
+                box.className = 'color-box';
+                box.style.backgroundColor = t.color;
+                if (t.name === settings.theme) box.classList.add('active');
+                box.onclick = () => changeTheme(t.name);
+                container.appendChild(box);
+            });
+        }
+
+        function changeTheme(theme) {
+            document.body.className = theme;
+            settings.theme = theme;
+            setupThemeColors();
+
+            const savedImage = localStorage.getItem('mosqueBackground');
+            if (!savedImage) {
+                document.body.classList.remove('has-mosque-image');
+            }
+        }
+
+        function setupPrayersSettings() {
+            const container = document.getElementById('prayersSettings');
+            container.innerHTML = '<h3 style="margin-top: 2vh; margin-bottom: 1vh; color: var(--main-color);">أوقات الصلاة</h3>';
+
+            const names = { fajr: 'الفجر', shuruk: 'الشروق', dhuhr: 'الظهر', asr: 'العصر', maghrib: 'المغرب', isha: 'العشاء' };
+
+            for (let key in settings.prayers) {
+                const p = settings.prayers[key];
+                const div = document.createElement('div');
+                div.className = 'setting-group';
+                div.innerHTML = `
+                    <label>${names[key]}:</label>
+                    <input type="time" id="${key}Adhan" value="${p.adhan}">
+                    ${key!== 'shuruk'? `<input type="number" id="${key}Iqama" value="${p.iqama}" placeholder="الإقامة بالدقائق" style="margin-top: 0.5vh;">` : ''}
+                `;
+                container.appendChild(div);
+            }
+        }
+
+        function renderPrayers() {
+            const grid = document.getElementById('prayersGrid');
+            grid.innerHTML = '';
+
+            const names = { fajr: 'الفجر', shuruk: 'الشروق', dhuhr: 'الظهر', asr: 'العصر', maghrib: 'المغرب', isha: 'العشاء' };
+
+            for (let key in settings.prayers) {
+                const p = settings.prayers[key];
+                const card = document.createElement('div');
+                card.className = 'prayer-card';
+                card.id = `prayer-${key}`;
+                card.innerHTML = `
+                    <div class="prayer-name">${names[key]}</div>
+                    <div class="prayer-time">${p.adhan}</div>
+                `;
+                grid.appendChild(card);
+            }
+        }
+
+        function updateJumuahInfo() {
+            const now = new Date();
+            const day = now.getDay();
+            const jumuahElement = document.getElementById('jumuahInfo');
+
+            if (day === 5 && settings.jumuahEnabled) {
+                const nowMinutes = now.getHours() * 60 + now.getMinutes();
+                const [khutbahH, khutbahM] = settings.jumuahKhutbah.split(':').map(Number);
+                const khutbahTime = khutbahH * 60 + khutbahM;
+                const prayerTime = khutbahTime + 20;
+
+                if (nowMinutes >= khutbahTime && nowMinutes < prayerTime) {
+                    jumuahElement.textContent = 'الجمعة: الخطبة الآن';
+                    jumuahElement.style.color = '#ff8c00';
+                    jumuahElement.style.background = 'rgba(255,140,0,0.2)';
+                } else if (nowMinutes >= prayerTime && nowMinutes < prayerTime + 30) {
+                    jumuahElement.textContent = 'الجمعة: الصلاة قائمة';
+                    jumuahElement.style.color = '#ff8c00';
+                    jumuahElement.style.background = 'rgba(255,140,0,0.2)';
+                } else {
+                    jumuahElement.textContent = `الجمعة: ${settings.jumuahKhutbah}`;
+                    jumuahElement.style.color = 'var(--main-color)';
+                    jumuahElement.style.background = 'transparent';
+                }
+            } else {
+                jumuahElement.textContent = `الجمعة: ${settings.jumuahKhutbah}`;
+                jumuahElement.style.color = 'var(--main-color)';
+                jumuahElement.style.background = 'transparent';
+            }
+        }
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').textContent = now.toLocaleTimeString('ar-MA', { hour12: false });
+
+            const gregorian = now.toLocaleDateString('ar-MA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            const hijri = '26 ربيع الآخر 1447';
+            document.getElementById('dateCombined').textContent = `${gregorian} • ${hijri}`;
+
+            updateJumuahInfo();
+            checkPrayerTimes();
+            updateNextPrayer();
+        }
+
+        function updateNextPrayer() {
+            const now = new Date();
+            const nowMinutes = now.getHours() * 60 + now.getMinutes();
+            let nextPrayer = null;
+            let nextTime = 1440;
+
+            for (let key in settings.prayers) {
+                if (key === 'shuruk') continue;
+                const [h, m] = settings.prayers[key].adhan.split(':').map(Number);
+                const time = h * 60 + m;
+                if (time > nowMinutes && time < nextTime) {
+                    nextTime = time;
+                    nextPrayer = key;
+                }
+            }
+
+            if (nextPrayer) {
+                const names = { fajr: 'الفجر', dhuhr: 'الظهر', asr: 'العصر', maghrib: 'المغرب', isha: 'العشاء' };
+                document.getElementById('nextPrayer').textContent = `التالي: ${names[nextPrayer]}`;
+
+                document.querySelectorAll('.prayer-card').forEach(c => c.classList.remove('active'));
+                document.getElementById(`prayer-${nextPrayer}`).classList.add('active');
+            }
+        }
+
+        function checkAdhanCountdown() {
+            const now = new Date();
+            const nowTime = now.getHours() * 60 + now.getMinutes();
+            const nowSeconds = now.getSeconds();
+
+            for (let key in settings.prayers) {
+                if (key === 'shuruk') continue;
+                const p = settings.prayers[key];
+                const [h, m] = p.adhan.split(':').map(Number);
+                const adhanTime = h * 60 + m;
+                const oneMinuteBefore = adhanTime - 1;
+
+                if (nowTime === oneMinuteBefore && nowSeconds === 0) {
+                    startAdhanCountdown(60);
+                }
+            }
+        }
+
+        function checkPrayerTimes() {
+            const now = new Date();
+            const nowTime = now.getHours() * 60 + now.getMinutes();
+            const nowSeconds = now.getSeconds();
+
+            for (let key in settings.prayers) {
+                if (key === 'shuruk') continue;
+                const p = settings.prayers[key];
+                const [h, m] = p.adhan.split(':').map(Number);
+                const adhanTime = h * 60 + m;
+                const iqamaTime = adhanTime + p.iqama;
+                const prayerEndTime = iqamaTime + settings.prayerDuration;
+
+                if (nowTime === adhanTime && nowSeconds === 0 && currentPrayerState!== 'adhan') {
+                    startIqamaCountdown(p.iqama * 60);
+                    currentPrayerState = 'adhan';
+                }
+                if (nowTime === iqamaTime && nowSeconds === 0 && currentPrayerState!== 'iqama') {
+                    startPrayerScreen(settings.prayerDuration * 60);
+                    currentPrayerState = 'iqama';
+                }
+                if (nowTime === prayerEndTime && nowSeconds === 0 && currentPrayerState!== 'adhkar') {
+                    showAdhkar();
+                    currentPrayerState = 'adhkar';
+                }
+            }
+            checkAdhanCountdown();
+        }
+
+        function startAdhanCountdown(seconds) {
+            clearInterval(countdownInterval);
+            const overlay = document.getElementById('countdownOverlay');
+            overlay.className = 'countdown-overlay show adhan-countdown';
+            document.getElementById('countdownLabel').textContent = 'المتبقي للأذان';
+            document.getElementById('countdownLabel').style.display = 'block';
+            document.getElementById('countdownNumber').style.display = 'block';
+            document.getElementById('prayerActiveText').style.display = 'none';
+            document.getElementById('adhkarText').style.display = 'none';
+
+            let remaining = seconds;
+            updateCountdownDisplay(remaining);
+
+            countdownInterval = setInterval(() => {
+                remaining--;
+                updateCountdownDisplay(remaining);
+                if (remaining <= 0) {
+                    clearInterval(countdownInterval);
+                    showAdhanLines();
+                }
+            }, 1000);
+        }
+
+        function showAdhanLines() {
+            const overlay = document.getElementById('countdownOverlay');
+            overlay.className = 'countdown-overlay show';
+            overlay.style.background = '#000';
+            document.getElementById('countdownLabel').style.display = 'none';
+            document.getElementById('countdownNumber').style.display = 'none';
+            document.getElementById('prayerActiveText').style.display = 'none';
+            document.getElementById('adhkarText').style.display = 'none';
+
+            currentAdhanLine = 0;
+            showNextAdhanLine();
+        }
+
+        function showNextAdhanLine() {
+            const overlay = document.getElementById('countdownOverlay');
+            if (currentAdhanLine < adhanLines.length) {
+                overlay.innerHTML = `<div class="adhan-line">${adhanLines[currentAdhanLine]}</div>`;
+                currentAdhanLine++;
+                setTimeout(showNextAdhanLine, 3000);
+            } else {
+                overlay.classList.remove('show');
+                overlay.innerHTML = `
+                    <div class="countdown-text" id="countdownLabel"></div>
+                    <div class="countdown-number" id="countdownNumber"></div>
+                    <div class="prayer-active-text" id="prayerActiveText" style="display:none;">... الصلاة قائمة...</div>
+                    <div class="adhkar-text" id="adhkarText" style="display:none;"></div>
+                `;
+            }
+        }
+
+        function startIqamaCountdown(seconds, isLastMinute = false) {
+            clearInterval(countdownInterval);
+            const overlay = document.getElementById('countdownOverlay');
+
+            if (seconds <= 60 &&!isLastMinute) {
+                overlay.className = 'countdown-overlay show iqama-last-minute';
+            } else {
+                overlay.className = 'countdown-overlay show';
+            }
+
+            document.getElementById('countdownLabel').textContent = 'المتبقي للإقامة';
+            document.getElementById('countdownLabel').style.display = 'block';
+            document.getElementById('countdownNumber').style.display = 'block';
+            document.getElementById('prayerActiveText').style.display = 'none';
+            document.getElementById('adhkarText').style.display = 'none';
+
+            let remaining = seconds;
+            updateCountdownDisplay(remaining);
+
+            countdownInterval = setInterval(() => {
+                remaining--;
+                if (remaining === 60) {
+                    overlay.className = 'countdown-overlay show iqama-last-minute';
+                }
+                updateCountdownDisplay(remaining);
+                if (remaining <= 0) {
+                    clearInterval(countdownInterval);
+                    overlay.classList.remove('show');
+                }
+            }, 1000);
+        }
+
+        function startPrayerScreen(seconds) {
+            clearInterval(countdownInterval);
+            const overlay = document.getElementById('countdownOverlay');
+            overlay.className = 'countdown-overlay show';
+            document.getElementById('countdownLabel').style.display = 'none';
+            document.getElementById('countdownNumber').style.display = 'none';
+            document.getElementById('prayerActiveText').style.display = 'block';
+            document.getElementById('adhkarText').style.display = 'none';
+
+            let remaining = seconds;
+            countdownInterval = setInterval(() => {
+                remaining--;
+                if (remaining <= 0) {
+                    clearInterval(countdownInterval);
+                    overlay.classList.remove('show');
+                }
+            }, 1000);
+        }
+
+        function showAdhkar() {
+            const overlay = document.getElementById('countdownOverlay');
+            overlay.className = 'countdown-overlay show';
+            document.getElementById('countdownLabel').style.display = 'none';
+            document.getElementById('countdownNumber').style.display = 'none';
+            document.getElementById('prayerActiveText').style.display = 'none';
+
+            const hour = new Date().getHours();
+            const adhkar = hour < 12?
+                'أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ\nوَالْحَمْدُ لِلَّهِ\nلَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ' :
+                'أَمْسَيْنَا وَأَمْسَى الْمُلْكُ لِلَّهِ\nوَالْحَمْدُ لِلَّهِ\nلَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ';
+
+            document.getElementById('adhkarText').textContent = adhkar;
+            document.getElementById('adhkarText').style.display = 'block';
+
+            setTimeout(() => {
+                overlay.classList.remove('show');
+                currentPrayerState = null;
+            }, 30000);
+        }
+
+        function updateCountdownDisplay(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            document.getElementById('countdownNumber').textContent =
+                `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function toggleSettings() {
+            document.getElementById('settingsPanel').classList.toggle('show');
+        }
+
+        function uploadMosqueImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageData = e.target.result;
+                    localStorage.setItem('mosqueBackground', imageData);
+                    document.body.style.backgroundImage = `url(${imageData})`;
+                    document.body.classList.add('has-mosque-image');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removeMosqueImage() {
+            localStorage.removeItem('mosqueBackground');
+            document.body.style.backgroundImage = 'none';
+            document.body.classList.remove('has-mosque-image');
+            document.getElementById('mosqueImageInput').value = '';
+        }
+
+        function updateCity() {
+            settings.city = document.getElementById('citySelect').value;
+        }
+
+        function saveSettings() {
+            settings.city = document.getElementById('citySelect').value;
+            settings.jumuahKhutbah = document.getElementById('jumuahTime').value;
+            settings.prayerDuration = parseInt(document.getElementById('prayerDuration').value);
+
+            for (let key in settings.prayers) {
+                settings.prayers[key].adhan = document.getElementById(`${key}Adhan`).value;
+                if (key!== 'shuruk') {
+                    settings.prayers[key].iqama = parseInt(document.getElementById(`${key}Iqama`).value);
+                }
+            }
+
+            localStorage.setItem('mosqueSettings', JSON.stringify(settings));
+            applySettings();
+            toggleSettings();
+            alert('تم الحفظ بنجاح');
+        }
+
+        init();
+    </script>
+</body>
+</html>
