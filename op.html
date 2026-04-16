@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>تطبيق مواقيت الصلاة</title>
+<style>
+  body {
+    font-family: 'Cairo', sans-serif;
+    background: var(--mosque-bg, #000);
+    background-size: cover;
+    background-position: center;
+    color: white;
+    margin: 0; padding: 20px;
+    transition: background 0.5s ease;
+  }
+  #mosqueName {
+    font-size: 2.5em;
+    margin-bottom: 15px;
+    text-align: center;
+  }
+  #prayerTimes {
+    font-size: 1.8em;
+    margin-bottom: 25px;
+    text-align: center;
+  }
+  #prayerTimes div {
+    margin: 8px 0;
+  }
+  label, select, input, button {
+    font-size: 1.2em;
+    margin: 8px 0;
+    display: block;
+    width: 100%;
+    max-width: 300px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 8px;
+    border-radius: 5px;
+    border: none;
+  }
+  button {
+    background-color: #FFD700;
+    color: black;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+  }
+  button:hover {
+    background-color: #e6c200;
+  }
+  #hadithTicker {
+    font-size: 4vh;
+    background: rgba(0,0,0,0.6);
+    color: #FFD700;
+    padding: 15px 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    margin-bottom: 30px;
+    border-radius: 8px;
+    text-align: center;
+  }
+  #hadithText {
+    display: inline-block;
+    padding-left: 100%;
+    animation: ticker 20s linear infinite;
+  }
+  @keyframes ticker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+  }
+  #settings {
+    max-width: 320px;
+    margin: 0 auto 40px auto;
+    background: rgba(255,255,255,0.1);
+    padding: 20px;
+    border-radius: 10px;
+  }
+  #bgImageInput {
+    font-size: 1em;
+  }
+</style>
+</head>
+<body>
+
+<div id="hadithTicker">
+  <div id="hadithText">قال رسول الله صلى الله عليه وسلم: "خيركم من تعلم القرآن وعلمه".</div>
+</div>
+
+<div id="mosqueName">اسم المسجد</div>
+
+<div id="prayerTimes">
+  <div>الفجر: <span id="fajrTime">--:--</span></div>
+  <div>الظهر: <span id="dhuhrTime">--:--</span></div>
+  <div>العصر: <span id="asrTime">--:--</span></div>
+  <div>المغرب: <span id="maghribTime">--:--</span></div>
+  <div>العشاء: <span id="ishaTime">--:--</span></div>
+</div>
+
+<div id="settings">
+  <label for="mosqueNameInput">تغيير اسم المسجد:</label>
+  <input type="text" id="mosqueNameInput" placeholder="اكتب اسم المسجد هنا" />
+
+  <label for="citySelect">اختر المدينة:</label>
+  <select id="citySelect">
+    <option value="الناظور">الناظور</option>
+    <option value="الرباط">الرباط</option>
+    <option value="الدار البيضاء">الدار البيضاء</option>
+    <option value="مراكش">مراكش</option>
+  </select>
+
+  <label for="bgImageInput">رابط صورة الخلفية (اختياري):</label>
+  <input type="url" id="bgImageInput" placeholder="أدخل رابط صورة الخلفية" />
+
+  <button id="saveSettingsBtn">حفظ الإعدادات</button>
+</div>
+
+<script>
+  // خريطة لتحويل أسماء المدن العربية إلى الإنجليزية
+  const cityMap = {
+    'الناظور': 'Nador',
+    'الرباط': 'Rabat',
+    'الدار البيضاء': 'Casablanca',
+    'مراكش': 'Marrakesh'
+  };
+
+  // عناصر DOM
+  const mosqueNameDisplay = document.getElementById('mosqueName');
+  const mosqueNameInput = document.getElementById('mosqueNameInput');
+  const citySelect = document.getElementById('citySelect');
+  const bgImageInput = document.getElementById('bgImageInput');
+  const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+
+  const fajrTime = document.getElementById('fajrTime');
+  const dhuhrTime = document.getElementById('dhuhrTime');
+  const asrTime = document.getElementById('asrTime');
+  const maghribTime = document.getElementById('maghribTime');
+  const ishaTime = document.getElementById('ishaTime');
+
+  // تحميل الإعدادات من localStorage عند بدء التشغيل
+  window.addEventListener('DOMContentLoaded', () => {
+    const savedMosqueName = localStorage.getItem('mosqueName');
+    if (savedMosqueName) {
+      mosqueNameDisplay.textContent = savedMosqueName;
+      mosqueNameInput.value = savedMosqueName;
+    } else {
+      mosqueNameDisplay.textContent = 'اسم المسجد';
+    }
+
+    const savedCity = localStorage.getItem('city');
+    if (savedCity && Object.keys(cityMap).includes(savedCity)) {
+      citySelect.value = savedCity;
+    }
+
+    const savedBg = localStorage.getItem('mosqueBg');
+    if (savedBg) {
+      document.body.style.setProperty('--mosque-bg', `url('${savedBg}')`);
+      bgImageInput.value = savedBg;
+    }
+
+    updatePrayerTimesAutomatically();
+  });
+
+  // دالة جلب مواقيت الصلاة من API Aladhan
+  async function fetchPrayerTimes(cityArabic) {
+    try {
+      const cityEnglish = cityMap[cityArabic] || cityArabic;
+      const url = `https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(cityEnglish)}&country=Morocco&method=4`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('فشل في جلب البيانات');
+      const data = await response.json();
+      if (data.code !== 200) throw new Error('خطأ في البيانات');
+
+      const timings = data.data.timings;
+      return {
+        fajr: timings.Fajr,
+        dhuhr: timings.Dhuhr,
+        asr: timings.Asr,
+        maghrib: timings.Maghrib,
+        isha: timings.Isha
+      };
+    } catch (error) {
+      console.error(error);
+      alert('تعذر جلب مواقيت الصلاة، يرجى المحاولة لاحقًا');
+      return null;
+    }
+  }
+
+  // تحديث عرض مواقيت الصلاة
+  function updatePrayerTimes(times) {
+    if (!times) return;
+    fajrTime.textContent = times.fajr || '--:--';
+    dhuhrTime.textContent = times.dhuhr || '--:--';
+    asrTime.textContent = times.asr || '--:--';
+    maghribTime.textContent = times.maghrib || '--:--';
+    ishaTime.textContent = times.isha || '--:--';
+  }
+
+  // تحديث مواقيت الصلاة تلقائيًا بناءً على المدينة المختارة
+  async function updatePrayerTimesAutomatically() {
+    const city = citySelect.value;
+    const times = await fetchPrayerTimes(city);
+    updatePrayerTimes(times);
+  }
+
+  // حفظ الإعدادات عند الضغط على زر الحفظ
+  saveSettingsBtn.addEventListener('click', () => {
+    const mosqueName = mosqueNameInput.value.trim();
+    if (mosqueName) {
+      mosqueNameDisplay.textContent = mosqueName;
+      localStorage.setItem('mosqueName', mosqueName);
+    }
+
+    const city = citySelect.value;
+    localStorage.setItem('city', city);
+
+    const bgUrl = bgImageInput.value.trim();
+    if (bgUrl) {
+      document.body.style.setProperty('--mosque-bg', `url('${bgUrl}')`);
+      localStorage.setItem('mosqueBg', bgUrl);
+    } else {
+      document.body.style.setProperty('--mosque-bg', '#000');
+      localStorage.removeItem('mosqueBg');
+    }
+
+    updatePrayerTimesAutomatically();
+    alert('تم حفظ الإعدادات بنجاح');
+  });
+
+  // تحديث مواقيت الصلاة عند تغيير المدينة مباشرة
+  citySelect.addEventListener('change', () => {
+    updatePrayerTimesAutomatically();
+  });
+</script>
+
+</body>
+</html>
