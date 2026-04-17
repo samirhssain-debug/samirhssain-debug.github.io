@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>تطبيق المسجد - التصميم الجديد</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts: Cairo + Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', 'Poppins', sans-serif;
+            background: #0b1120;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* خلفية ديناميكية */
+        #bg-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            transition: background-image 0.8s ease;
+            z-index: -2;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(2px);
+            z-index: -1;
+        }
+
+        /* حاوية رئيسية */
+        .main-container {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* بطاقة عامة */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            border-radius: 32px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s;
+        }
+
+        /* وضع الصورة يجعل الخلفية أكثر شفافية */
+        body.image-mode .glass-card {
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+        }
+
+        /* الهيدر */
+        .header-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 60px;
+            padding: 10px 20px;
+        }
+        .date-box {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        .hijri-box {
+            background: #2c3e2faa;
+            padding: 4px 12px;
+            border-radius: 30px;
+        }
+
+        /* اسم المسجد + الساعة */
+        .mosque-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .mosque-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #F9E0A0, #FFB347);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        .time-24 {
+            font-family: 'Poppins', monospace;
+            font-size: 2rem;
+            font-weight: 600;
+            background: rgba(0,0,0,0.5);
+            padding: 6px 18px;
+            border-radius: 50px;
+            letter-spacing: 2px;
+        }
+
+        /* العد التنازلي - تصميم دائري أنيق */
+        .countdown-card {
+            text-align: center;
+            background: linear-gradient(135deg, rgba(0,0,0,0.5), rgba(0,0,0,0.2));
+        }
+        .next-label {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        .countdown-timer {
+            font-family: 'Poppins', monospace;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #FFE6B0;
+            letter-spacing: 4px;
+            margin-top: 5px;
+        }
+
+        /* جدول الصلوات بأسلوب حديث */
+        .prayer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+        }
+        .prayer-item {
+            background: rgba(255,255,240,0.1);
+            border-radius: 28px;
+            padding: 12px 8px;
+            text-align: center;
+            transition: 0.2s;
+        }
+        .prayer-icon {
+            font-size: 1.4rem;
+            margin-bottom: 6px;
+        }
+        .prayer-name-ar {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        .adhan-time, .iqamah-time {
+            font-family: 'Poppins', monospace;
+            font-size: 0.9rem;
+            direction: ltr;
+            margin-top: 4px;
+        }
+        .iqamah-time {
+            color: #ffd966;
+        }
+
+        /* الآية */
+        .ayah-text {
+            text-align: center;
+            font-size: 1.2rem;
+            line-height: 1.7;
+            font-family: 'Amiri', serif;
+        }
+
+        /* شريط الأحاديث */
+        .hadith-slider {
+            text-align: center;
+            font-size: 1rem;
+            transition: opacity 0.3s;
+            min-height: 85px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* زر الإعدادات */
+        .settings-btn {
+            position: fixed;
+            bottom: 25px;
+            left: 25px;
+            background: #ffb347;
+            width: 55px;
+            height: 55px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            z-index: 200;
+            font-size: 28px;
+            border: none;
+            color: #1e2a2e;
+            transition: 0.2s;
+        }
+        .settings-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* مودال الرقم السري ولوحة الإعدادات */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            visibility: hidden;
+            opacity: 0;
+            transition: 0.2s;
+        }
+        .modal-overlay.open {
+            visibility: visible;
+            opacity: 1;
+        }
+        .modal-content {
+            background: #1e293b;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 48px;
+            padding: 24px;
+            color: white;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .modal-content h3 {
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .settings-group {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 15px;
+        }
+        .settings-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 30px;
+            border: none;
+            background: #0f172a;
+            color: white;
+            margin-top: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 30px;
+            border: none;
+            background: #ffb347;
+            font-weight: bold;
+            margin-top: 8px;
+            cursor: pointer;
+        }
+        .theme-balls {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+        .theme-ball {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            background: #2c5f2d;
+            color: #ffecb3;
+            padding: 10px 18px;
+            border-radius: 60px;
+            z-index: 300;
+            animation: fadeOut 4s forwards;
+        }
+        @keyframes fadeOut {
+            0% { opacity: 1; transform: translateY(0);}
+            70% { opacity: 1;}
+            100% { opacity: 0; visibility: hidden;}
+        }
+        @media (max-width: 550px) {
+            .time-24 { font-size: 1.5rem; }
+            .mosque-name { font-size: 1.4rem; }
+            .countdown-timer { font-size: 1.8rem; }
+            .prayer-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+<div id="bg-layer"></div>
+<div class="overlay"></div>
+
+<div class="main-container">
+    <!-- الهيدر -->
+    <div class="glass-card header-stats">
+        <span id="gregorianDate">Friday, April 17, 2026</span>
+        <span class="hijri-box" id="hijriDate">26 Shawwal 1447</span>
+    </div>
+
+    <!-- اسم المسجد + الساعة -->
+    <div class="glass-card mosque-header">
+        <span class="mosque-name" id="mosqueName">مسجد النور</span>
+        <span class="time-24" id="liveClock">00:00:00</span>
+    </div>
+
+    <!-- العد التنازلي -->
+    <div class="glass-card countdown-card">
+        <div class="next-label">🕌 أقرب صلاة (أذان) : <span id="nextPrayerName">العصر</span></div>
+        <div class="countdown-timer" id="countdownTimer">--:--:--</div>
+    </div>
+
+    <!-- جدول الصلوات (أذان وإقامة) -->
+    <div class="glass-card">
+        <div class="prayer-grid" id="prayerGrid"></div>
+    </div>
+
+    <!-- الآية الثابتة -->
+    <div class="glass-card ayah-text" id="ayahBox">
+        ﴿ حَافِظُوا عَلَى الصَّلَوَاتِ وَالصَّلَاةِ الْوُسْطَىٰ ﴾
+    </div>
+
+    <!-- شريط الأحاديث -->
+    <div class="glass-card hadith-slider" id="hadithSlider">
+        قال رسول الله ﷺ: "مثل المؤمنين في توادهم وتراحمهم كمثل الجسد الواحد"
+    </div>
+</div>
+
+<button class="settings-btn" id="settingsBtn"><i class="fas fa-cog"></i></button>
+
+<!-- مودال الرقم السري -->
+<div id="passwordModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3><i class="fas fa-lock"></i> الدخول للإعدادات</h3>
+        <p>أدخل الرقم السري</p>
+        <input type="password" id="passwordInput" placeholder="****" maxlength="6" inputmode="numeric">
+        <button id="unlockBtn">فتح الإعدادات</button>
+        <button id="closePasswordBtn" style="background:#475569;">إلغاء</button>
+    </div>
+</div>
+
+<!-- لوحة الإعدادات الكاملة -->
+<div id="settingsPanel" class="modal-overlay">
+    <div class="modal-content">
+        <h3><i class="fas fa-sliders-h"></i> التحكم الكامل</h3>
+        <div class="settings-group">
+            <label><i class="fas fa-key"></i> تغيير الرقم السري (افتراضي 0000)</label>
+            <input type="password" id="newPassword" placeholder="رقم جديد (أرقام فقط)">
+            <button id="changePasswordBtn">تغيير</button>
+        </div>
+        <div class="settings-group">
+            <label><i class="fas fa-mosque"></i> اسم المسجد</label>
+            <input type="text" id="mosqueNameInput" placeholder="اسم المسجد">
+            <button id="saveMosqueNameBtn">حفظ</button>
+        </div>
+        <div class="settings-group">
+            <label><i class="fas fa-clock"></i> أوقات الأذان والإقامة</label>
+            <div id="prayerTimesEditor"></div>
+            <button id="saveTimesBtn">حفظ الأوقات</button>
+        </div>
+        <div class="settings-group">
+            <label><i class="fas fa-palette"></i> ألوان الثيم</label>
+            <div class="theme-balls">
+                <div class="theme-ball" style="background:#ffd966;" data-theme="gold"></div>
+                <div class="theme-ball" style="background:#6ab0de;" data-theme="blue"></div>
+                <div class="theme-ball" style="background:#71b874;" data-theme="green"></div>
+                <div class="theme-ball" style="background:#e0896e;" data-theme="rose"></div>
+            </div>
+        </div>
+        <div class="settings-group">
+            <label><i class="fas fa-image"></i> وضع صورة المسجد (يلغي الثيمات)</label>
+            <button id="imageModeToggle">تفعيل / إلغاء</button>
+        </div>
+        <div class="settings-group">
+            <label><i class="fas fa-upload"></i> تحميل خلفية من جهازك</label>
+            <input type="file" id="uploadBgImage" accept="image/*">
+            <button id="resetBgBtn">إعادة الخلفية التلقائية</button>
+        </div>
+        <div class="settings-group">
+            <label><i class="fas fa-quran"></i> نص الآية الثابتة</label>
+            <textarea id="ayahText" rows="2"></textarea>
+            <button id="saveAyahBtn">حفظ الآية</button>
+        </div>
+        <div class="settings-group">
+            <label><i class="fas fa-list"></i> الأحاديث (كل حديث في سطر)</label>
+            <textarea id="hadithListText" rows="4"></textarea>
+            <button id="saveHadithBtn">حفظ الأحاديث</button>
+        </div>
+        <div class="settings-group">
+            <label><i class="fas fa-bell"></i> التذكير بالأذان والإقامة</label>
+            <button id="enableNotificationBtn">تفعيل التنبيهات</button>
+            <label>تذكير قبل الأذان (دقائق):</label>
+            <input type="number" id="reminderMinutes" min="0" max="30" value="5">
+            <button id="saveReminderSettings">حفظ التذكير</button>
+        </div>
+        <div class="settings-group">
+            <label><i class="fas fa-book"></i> أذكار الصباح والمساء (نصوص مخصصة)</label>
+            <button id="morningAzkarBtn">☀️ أذكار الصباح</button>
+            <button id="eveningAzkarBtn">🌙 أذكار المساء</button>
+            <textarea id="customMorningAzkar" rows="2" placeholder="أذكار الصباح..."></textarea>
+            <textarea id="customEveningAzkar" rows="2" placeholder="أذكار المساء..."></textarea>
+            <button id="saveAzkarBtn">حفظ الأذكار</button>
+        </div>
+        <button id="closeSettings" class="btn-close" style="background:#ffb347;">إغلاق</button>
+    </div>
+</div>
+
+<script>
+    // ========== البيانات الأساسية ==========
+    let prayerData = {
+        "الفجر": { adhan: "05:07", iqamah: "05:22" },
+        "الشروق": { adhan: "06:37", iqamah: "06:37" },
+        "الظهر": { adhan: "13:12", iqamah: "13:27" },
+        "العصر": { adhan: "17:52", iqamah: "18:07" },
+        "المغرب": { adhan: "19:48", iqamah: "20:03" },
+        "العشاء": { adhan: "21:08", iqamah: "21:23" }
+    };
+    let hadiths = [
+        "قال رسول الله ﷺ: «العهد الذي بيننا وبينهم الصلاة فمن تركها فقد كفر»",
+        "قال رسول الله ﷺ: «صلاة الجماعة تفضل صلاة الفذ بسبع وعشرين درجة»",
+        "قال ﷺ: «مثل المؤمنين في توادهم وتراحمهم كمثل الجسد الواحد»"
+    ];
+    let ayahText = "﴿ حَافِظُوا عَلَى الصَّلَوَاتِ وَالصَّلَاةِ الْوُسْطَىٰ وَقُومُوا لِلَّهِ قَانِتِينَ ﴾ [البقرة: 238]";
+    let reminderBeforeMinutes = 5;
+    let notificationsGranted = false;
+    let reminderInterval;
+    let password = "0000";
+    let isUnlocked = false;
+
+    // تحميل الإعدادات المحفوظة
+    function loadAllSettings() {
+        if (localStorage.getItem("pro_password")) password = localStorage.getItem("pro_password");
+        if (localStorage.getItem("pro_prayer_data")) prayerData = JSON.parse(localStorage.getItem("pro_prayer_data"));
+        if (localStorage.getItem("pro_hadiths")) hadiths = JSON.parse(localStorage.getItem("pro_hadiths"));
+        if (localStorage.getItem("pro_ayah")) ayahText = localStorage.getItem("pro_ayah");
+        if (localStorage.getItem("pro_reminder_minutes")) reminderBeforeMinutes = parseInt(localStorage.getItem("pro_reminder_minutes"));
+        
+        renderPrayerGrid();
+        updateNextPrayer();
+        startReminderWatcher();
+        document.getElementById("ayahBox").innerHTML = ayahText;
+        document.getElementById("hadithSlider").innerText = hadiths[0];
+        document.getElementById("reminderMinutes").value = reminderBeforeMinutes;
+        
+        // تعبئة حقول الإعدادات
+        document.getElementById("ayahText").value = ayahText;
+        document.getElementById("hadithListText").value = hadiths.join("\n");
+        if (localStorage.getItem("pro_morning_azkar")) document.getElementById("customMorningAzkar").value = localStorage.getItem("pro_morning_azkar");
+        if (localStorage.getItem("pro_evening_azkar")) document.getElementById("customEveningAzkar").value = localStorage.getItem("pro_evening_azkar");
+        if (localStorage.getItem("pro_mosque_name")) document.getElementById("mosqueName").innerText = localStorage.getItem("pro_mosque_name");
+        
+        // وضع الصورة
+        if (localStorage.getItem("pro_image_mode") === "true") toggleImageMode(true);
+        else {
+            let savedTheme = localStorage.getItem("pro_theme");
+            if (savedTheme) applyTheme(savedTheme);
+        }
+    }
+
+    function renderPrayerGrid() {
+        const grid = document.getElementById("prayerGrid");
+        grid.innerHTML = "";
+        for (let [name, times] of Object.entries(prayerData)) {
+            const item = document.createElement("div");
+            item.className = "prayer-item";
+            item.innerHTML = `
+                <div class="prayer-icon"><i class="fas fa-mosque"></i></div>
+                <div class="prayer-name-ar">${name}</div>
+                <div class="adhan-time">📢 ${times.adhan}</div>
+                <div class="iqamah-time">🏛️ إقامة ${times.iqamah}</div>
+            `;
+            grid.appendChild(item);
+        }
+        // تحديث محرر الإعدادات
+        const editor = document.getElementById("prayerTimesEditor");
+        if (editor) {
+            editor.innerHTML = "";
+            for (let [name, times] of Object.entries(prayerData)) {
+                const div = document.createElement("div");
+                div.style.marginBottom = "10px";
+                div.innerHTML = `
+                    <label>${name} - أذان</label><input type="time" data-prayer="${name}" data-type="adhan" value="${times.adhan}">
+                    <label>${name} - إقامة</label><input type="time" data-prayer="${name}" data-type="iqamah" value="${times.iqamah}">
+                `;
+                editor.appendChild(div);
+            }
+        }
+    }
+
+    function savePrayerData() {
+        localStorage.setItem("pro_prayer_data", JSON.stringify(prayerData));
+        renderPrayerGrid();
+        updateNextPrayer();
+        startReminderWatcher();
+        showToast("تم حفظ أوقات الصلاة");
+    }
+
+    // العد التنازلي
+    function parseTimeToMin(t) {
+        let [h,m] = t.split(":").map(Number);
+        return h*60+m;
+    }
+    function getCurrentMin() {
+        let d = new Date();
+        return d.getHours()*60 + d.getMinutes();
+    }
+    function updateNextPrayer() {
+        let nowMin = getCurrentMin();
+        let next = null;
+        let minDiff = Infinity;
+        for (let [name, times] of Object.entries(prayerData)) {
+            let adhanMin = parseTimeToMin(times.adhan);
+            let diff = adhanMin - nowMin;
+            if (diff < 0) diff += 1440;
+            if (diff < minDiff) {
+                minDiff = diff;
+                next = name;
+            }
+        }
+        if (next) {
+            document.getElementById("nextPrayerName").innerHTML = next;
+            let totalSec = minDiff * 60;
+            let hours = Math.floor(totalSec/3600);
+            let mins = Math.floor((totalSec%3600)/60);
+            let secs = totalSec%60;
+            document.getElementById("countdownTimer").innerHTML = `${hours.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+        }
+    }
+    setInterval(updateNextPrayer, 1000);
+    
+    // الساعة 24
+    function updateClock() {
+        let d = new Date();
+        let timeStr = d.toLocaleTimeString('en-GB', { hour12: false });
+        document.getElementById("liveClock").innerText = timeStr;
+        let greg = d.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+        document.getElementById("gregorianDate").innerText = greg;
+        try {
+            let hijri = d.toLocaleDateString('ar-SA-u-ca-islamic-umalqura', { day:'numeric', month:'long', year:'numeric' });
+            document.getElementById("hijriDate").innerText = hijri;
+        } catch(e) {}
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+    
+    // الأحاديث المتحركة
+    let hadithIndex = 0;
+    const hadithDiv = document.getElementById("hadithSlider");
+    function rotateHadith() {
+        if (hadiths.length === 0) return;
+        hadithDiv.style.opacity = "0";
+        setTimeout(() => {
+            hadithDiv.innerText = hadiths[hadithIndex];
+            hadithDiv.style.opacity = "1";
+            hadithIndex = (hadithIndex+1) % hadiths.length;
+        }, 200);
+    }
+    setInterval(rotateHadith, 6000);
+    rotateHadith();
+    
+    // التذكير والإشعارات
+    function showToast(msg) {
+        let t = document.createElement("div");
+        t.className = "toast";
+        t.innerText = msg;
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 4000);
+    }
+    function sendNotification(title, body) {
+        if (notificationsGranted) new Notification(title, { body });
+        showToast(body);
+    }
+    function checkPrayerTimes() {
+        let nowMin = getCurrentMin();
+        for (let [name, times] of Object.entries(prayerData)) {
+            let adhanMin = parseTimeToMin(times.adhan);
+            let iqamahMin = parseTimeToMin(times.iqamah);
+            if (nowMin === adhanMin - reminderBeforeMinutes && reminderBeforeMinutes > 0) {
+                sendNotification(`⏰ تذكير: ${name}`, `باقي ${reminderBeforeMinutes} دقائق على أذان ${name}`);
+            }
+            if (nowMin === adhanMin) {
+                sendNotification(`أذان ${name}`, `حان الآن وقت صلاة ${name}`);
+            }
+            if (nowMin === iqamahMin) {
+                sendNotification(`إقامة ${name}`, `أقيموا الصلاة رحمكم الله`);
+            }
+        }
+    }
+    function startReminderWatcher() {
+        if (reminderInterval) clearInterval(reminderInterval);
+        reminderInterval = setInterval(checkPrayerTimes, 30000);
+    }
+    function enableNotifications() {
+        if ("Notification" in window) {
+            Notification.requestPermission().then(perm => {
+                notificationsGranted = (perm === "granted");
+                if (notificationsGranted) showToast("التنبيهات مفعلة ✅");
+            });
+        }
+    }
+    
+    // الخلفيات
+    const bgLayer = document.getElementById("bg-layer");
+    let autoBgInterval;
+    const defaultBgs = [
+        "https://images.pexels.com/photos/258105/pexels-photo-258105.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+        "https://images.pexels.com/photos/2607544/pexels-photo-2607544.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+        "https://images.pexels.com/photos/1631662/pexels-photo-1631662.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+    ];
+    let bgIndex = 0;
+    function changeAutoBg() {
+        if (!localStorage.getItem("customBg")) {
+            bgLayer.style.backgroundImage = `url(${defaultBgs[bgIndex]})`;
+            bgIndex = (bgIndex+1) % defaultBgs.length;
+        }
+    }
+    function startAutoBg() {
+        if (autoBgInterval) clearInterval(autoBgInterval);
+        autoBgInterval = setInterval(changeAutoBg, 30000);
+    }
+    startAutoBg();
+    changeAutoBg();
+    document.getElementById("uploadBgImage").addEventListener("change", (e) => {
+        let file = e.target.files[0];
+        if (file) {
+            let reader = new FileReader();
+            reader.onload = (ev) => {
+                bgLayer.style.backgroundImage = `url(${ev.target.result})`;
+                localStorage.setItem("customBg", ev.target.result);
+                if (autoBgInterval) clearInterval(autoBgInterval);
+                showToast("تم تغيير الخلفية");
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    document.getElementById("resetBgBtn").addEventListener("click", () => {
+        localStorage.removeItem("customBg");
+        if (autoBgInterval) clearInterval(autoBgInterval);
+        startAutoBg();
+        changeAutoBg();
+        showToast("تمت استعادة الخلفيات التلقائية");
+    });
+    if (localStorage.getItem("customBg")) {
+        bgLayer.style.backgroundImage = `url(${localStorage.getItem("customBg")})`;
+        if (autoBgInterval) clearInterval(autoBgInterval);
+    }
+    
+    // الثيمات ووضع الصورة
+    function applyTheme(theme) {
+        if (document.body.classList.contains("image-mode")) return;
+        let bgCard;
+        switch(theme) {
+            case 'gold': bgCard = 'rgba(100,70,20,0.6)'; break;
+            case 'blue': bgCard = 'rgba(20,60,100,0.6)'; break;
+            case 'green': bgCard = 'rgba(30,70,30,0.6)'; break;
+            case 'rose': bgCard = 'rgba(100,40,50,0.6)'; break;
+            default: bgCard = 'rgba(255,255,255,0.1)';
+        }
+        document.querySelectorAll(".glass-card").forEach(c => c.style.background = bgCard);
+        localStorage.setItem("pro_theme", theme);
+    }
+    function toggleImageMode(enable) {
+        if (enable) {
+            document.body.classList.add("image-mode");
+            localStorage.setItem("pro_image_mode", "true");
+            document.querySelectorAll(".glass-card").forEach(c => c.style.background = "rgba(0,0,0,0.4)");
+        } else {
+            document.body.classList.remove("image-mode");
+            localStorage.setItem("pro_image_mode", "false");
+            let savedTheme = localStorage.getItem("pro_theme") || "gold";
+            applyTheme(savedTheme);
+        }
+    }
+    document.querySelectorAll(".theme-ball").forEach(ball => {
+        ball.addEventListener("click", () => {
+            if (document.body.classList.contains("image-mode")) alert("ألغِ وضع الصورة أولاً");
+            else applyTheme(ball.dataset.theme);
+        });
+    });
+    document.getElementById("imageModeToggle").addEventListener("click", () => toggleImageMode(!document.body.classList.contains("image-mode")));
+    
+    // أحداث حفظ البيانات
+    document.getElementById("saveTimesBtn").addEventListener("click", () => {
+        let inputs = document.querySelectorAll("#prayerTimesEditor input");
+        inputs.forEach(inp => {
+            let prayer = inp.dataset.prayer;
+            let type = inp.dataset.type;
+            if (prayer && type && inp.value) {
+                if (!prayerData[prayer]) prayerData[prayer] = { adhan: "", iqamah: "" };
+                prayerData[prayer][type] = inp.value;
+            }
+        });
+        savePrayerData();
+    });
+    document.getElementById("saveAyahBtn").addEventListener("click", () => {
+        let newAyah = document.getElementById("ayahText").value;
+        if (newAyah) {
+            ayahText = newAyah;
+            localStorage.setItem("pro_ayah", ayahText);
+            document.getElementById("ayahBox").innerHTML = ayahText;
+            showToast("تم حفظ الآية");
+        }
+    });
+    document.getElementById("saveHadithBtn").addEventListener("click", () => {
+        let lines = document.getElementById("hadithListText").value.split("\n").filter(l => l.trim());
+        if (lines.length) {
+            hadiths = lines;
+            localStorage.setItem("pro_hadiths", JSON.stringify(hadiths));
+            hadithIndex = 0;
+            rotateHadith();
+            showToast("تم حفظ الأحاديث");
+        }
+    });
+    document.getElementById("saveReminderSettings").addEventListener("click", () => {
+        reminderBeforeMinutes = parseInt(document.getElementById("reminderMinutes").value);
+        localStorage.setItem("pro_reminder_minutes", reminderBeforeMinutes);
+        startReminderWatcher();
+        showToast("تم حفظ إعدادات التذكير");
+    });
+    document.getElementById("enableNotificationBtn").addEventListener("click", enableNotifications);
+    
+    // الأذكار
+    document.getElementById("saveAzkarBtn").addEventListener("click", () => {
+        let morning = document.getElementById("customMorningAzkar").value;
+        let evening = document.getElementById("customEveningAzkar").value;
+        localStorage.setItem("pro_morning_azkar", morning);
+        localStorage.setItem("pro_evening_azkar", evening);
+        showToast("تم حفظ الأذكار");
+    });
+    document.getElementById("morningAzkarBtn").addEventListener("click", () => {
+        let txt = localStorage.getItem("pro_morning_azkar") || "سبحان الله وبحمده، لا إله إلا الله...";
+        alert("☀️ أذكار الصباح:\n" + txt);
+    });
+    document.getElementById("eveningAzkarBtn").addEventListener("click", () => {
+        let txt = localStorage.getItem("pro_evening_azkar") || "أعوذ بكلمات الله التامات...";
+        alert("🌙 أذكار المساء:\n" + txt);
+    });
+    
+    // إدارة الرقم السري والإعدادات
+    const passwordModal = document.getElementById("passwordModal");
+    const settingsPanel = document.getElementById("settingsPanel");
+    document.getElementById("settingsBtn").addEventListener("click", () => {
+        if (isUnlocked) settingsPanel.classList.add("open");
+        else passwordModal.classList.add("open");
+    });
+    document.getElementById("unlockBtn").addEventListener("click", () => {
+        let entered = document.getElementById("passwordInput").value;
+        if (entered === password) {
+            isUnlocked = true;
+            passwordModal.classList.remove("open");
+            settingsPanel.classList.add("open");
+            document.getElementById("passwordInput").value = "";
+        } else alert("الرقم السري غير صحيح");
+    });
+    document.getElementById("closePasswordBtn").addEventListener("click", () => passwordModal.classList.remove("open"));
+    document.getElementById("closeSettings").addEventListener("click", () => settingsPanel.classList.remove("open"));
+    settingsPanel.addEventListener("click", (e) => { if (e.target === settingsPanel) settingsPanel.classList.remove("open"); });
+    
+    document.getElementById("changePasswordBtn").addEventListener("click", () => {
+        let newPass = document.getElementById("newPassword").value;
+        if (newPass && /^\d+$/.test(newPass)) {
+            password = newPass;
+            localStorage.setItem("pro_password", password);
+            showToast("تم تغيير الرقم السري");
+            document.getElementById("newPassword").value = "";
+        } else alert("أدخل أرقاماً فقط");
+    });
+    document.getElementById("saveMosqueNameBtn").addEventListener("click", () => {
+        let name = document.getElementById("mosqueNameInput").value;
+        if (name) {
+            document.getElementById("mosqueName").innerText = name;
+            localStorage.setItem("pro_mosque_name", name);
+            showToast("تم تغيير اسم المسجد");
+        }
+    });
+    
+    loadAllSettings();
+</script>
+</body>
+</html>
