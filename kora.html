@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>تطبيق التلفاز والهاتف</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none; /* تجنب تحديد النصوص أثناء التنقل */
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(145deg, #0a0f1e 0%, #0c1222 100%);
+            font-family: 'Segoe UI', 'Tahoma', 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* الحاوية الرئيسية */
+        .app-container {
+            max-width: 1400px;
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(2px);
+            border-radius: 48px;
+            padding: 20px 24px 32px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        /* العنوان */
+        h1 {
+            text-align: center;
+            font-size: clamp(1.8rem, 6vw, 3rem);
+            font-weight: 600;
+            color: #fff;
+            text-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            margin: 0 0 8px 0;
+            letter-spacing: -0.5px;
+        }
+
+        .sub {
+            text-align: center;
+            color: #aab3cf;
+            margin-bottom: 32px;
+            font-size: clamp(0.9rem, 3vw, 1.2rem);
+            border-bottom: 1px dashed #2a3348;
+            display: inline-block;
+            width: auto;
+            margin-left: auto;
+            margin-right: auto;
+            padding-bottom: 8px;
+        }
+
+        /* شبكة الأزرار - متجاوبة */
+        .grid-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+            margin: 20px 0 30px;
+        }
+
+        /* زر / بطاقة التطبيق */
+        .app-card {
+            background: linear-gradient(135deg, #1e2a3e, #0f172a);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 36px;
+            padding: 28px 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 10px 20px -5px rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        /* تحسين التركيز للتلفاز (remote control) */
+        .app-card:focus-visible {
+            outline: none;
+            transform: scale(1.02);
+            border-color: #facc15;
+            box-shadow: 0 0 0 4px rgba(250,204,21,0.6), 0 12px 28px black;
+            background: #2a3a54;
+        }
+
+        /* حالة hover للماوس */
+        .app-card:hover {
+            background: #2d3e5e;
+            transform: translateY(-4px);
+            border-color: #ffd966;
+        }
+
+        /* حالة الضغط */
+        .app-card:active {
+            transform: scale(0.98);
+        }
+
+        /* أيقونات (رموز تعبيرية أو نص) */
+        .card-icon {
+            font-size: clamp(3rem, 8vw, 5rem);
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .card-title {
+            font-size: clamp(1.3rem, 5vw, 1.8rem);
+            font-weight: bold;
+            color: #f0f3fa;
+            margin: 12px 0 6px;
+        }
+
+        .card-desc {
+            font-size: 0.85rem;
+            color: #9aa9c1;
+        }
+
+        /* منطقة عرض النتيجة */
+        .result-area {
+            background: #050a15cc;
+            border-radius: 40px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+            border: 1px solid #2d3a55;
+            backdrop-filter: blur(8px);
+        }
+
+        .result-text {
+            font-size: clamp(1rem, 4vw, 1.5rem);
+            color: #ffecb3;
+            font-weight: 500;
+            margin: 0;
+            word-break: break-word;
+        }
+
+        .hint {
+            font-size: 0.8rem;
+            color: #7e8aa8;
+            margin-top: 12px;
+            direction: ltr;
+        }
+
+        /* تحسين للهواتف (لمس أكبر) */
+        @media (max-width: 640px) {
+            .app-container {
+                padding: 16px;
+            }
+            .grid-buttons {
+                gap: 16px;
+            }
+            .app-card {
+                padding: 20px 8px;
+            }
+        }
+
+        /* تحسين للتلفاز (شاشات كبيرة) */
+        @media (min-width: 1200px) {
+            .grid-buttons {
+                gap: 32px;
+            }
+            .app-card {
+                padding: 38px 16px;
+            }
+        }
+
+        footer {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #5f6c8a;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <h1>📺 تطبيق التلفاز والهاتف</h1>
+    <div style="text-align: center;">
+        <div class="sub">➡️ استخدم الأسهم (↑↓←→) للتنقل على التلفاز، واضغط OK أو اللمس ⬅️</div>
+    </div>
+
+    <div class="grid-buttons" id="appGrid">
+        <!-- سيتم إنشاء الأزرار بواسطة JS للحفاظ على ترتيب التركيز السهل، لكن يمكن كتابتها يدوياً -->
+    </div>
+
+    <div class="result-area" id="resultArea">
+        <div class="result-text" id="resultMessage">
+            ✨ اضغط على أي خدمة لترى التفاصيل ✨
+        </div>
+        <div class="hint">📱 هواتف: لمس مباشر | 📺 تلفاز: أسهم + زر الإدخال</div>
+    </div>
+    <footer>تطبيق ذكي متوافق مع جميع الأجهزة - يدعم التحكم عن بُعد</footer>
+</div>
+
+<script>
+    // قائمة التطبيقات / الخدمات (يمكن تعديلها بسهولة)
+    const apps = [
+        { id: 0, name: "الأخبار", icon: "📰", desc: "آخر الأخبار المحلية والعالمية", action: "عرض الأخبار" },
+        { id: 1, name: "رياضة", icon: "⚽", desc: "مباريات ونتائج حية", action: "فتح قسم الرياضة" },
+        { id: 2, name: "أفلام", icon: "🎬", desc: "أحدث الأفلام والمسلسلات", action: "استعراض الأفلام" },
+        { id: 3, name: "ألعاب", icon: "🎮", desc: "ألعاب تفاعلية", action: "تشغيل الألعاب" },
+        { id: 4, name: "يوتيوب", icon: "📺", desc: "مقاطع فيديو", action: "فتح يوتيوب" },
+        { id: 5, name: "إعدادات", icon: "⚙️", desc: "تخصيص التطبيق", action: "فتح الإعدادات" },
+        { id: 6, name: "بث مباشر", icon: "📡", desc: "قنوات تلفزيونية", action: "تشغيل البث" },
+        { id: 7, name: "موسيقى", icon: "🎵", desc: "استمع لأحدث الأغاني", action: "تشغيل الموسيقى" }
+    ];
+
+    const gridContainer = document.getElementById('appGrid');
+    const resultMessageDiv = document.getElementById('resultMessage');
+
+    // بناء الأزرار كعناصر قابلة للتركيز (button-like divs مع tabindex)
+    // نستخدم <div role="button"> لسهولة التحكم، لكن الأفضل استخدام <button> مع إعادة تعيين الأنماط.
+    // سنستخدم عناصر <button> لأنها أصلاً قابلة للتركيز وتعمل مع لوحة المفاتيح بشكل ممتاز.
+    // سنقوم بإنشاء أزرار حقيقية مع أنماط مخصصة.
+
+    function buildGrid() {
+        gridContainer.innerHTML = '';
+        apps.forEach((app, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'app-card';
+            btn.setAttribute('data-id', app.id);
+            btn.setAttribute('data-name', app.name);
+            btn.setAttribute('data-action', app.action);
+            // جعل الزر قابل للتركيز بشكل واضح
+            btn.tabIndex = 0;
+            // المحتوى الداخلي
+            btn.innerHTML = `
+                <span class="card-icon">${app.icon}</span>
+                <div class="card-title">${app.name}</div>
+                <div class="card-desc">${app.desc}</div>
+            `;
+            // إضافة حدث النقر / اللمس
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                handleAction(app.name, app.action);
+            });
+            // دعم مفتاح Enter و Space (للتلفاز)
+            btn.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleAction(app.name, app.action);
+                }
+            });
+            gridContainer.appendChild(btn);
+        });
+    }
+
+    // معالجة الضغط على أي عنصر
+    function handleAction(name, actionDetail) {
+        resultMessageDiv.innerHTML = `✅ تم اختيار: ${name} | ${actionDetail} ✅<br><span style="font-size:0.8rem;">(محاكاة التنقل - يمكن ربطها بصفحات حقيقية)</span>`;
+        // إضافة تأثير اهتزاز بسيط اختياري (لإفادة المستخدم)
+        const resultBox = document.getElementById('resultArea');
+        resultBox.style.transform = 'scale(1.01)';
+        setTimeout(() => { resultBox.style.transform = ''; }, 150);
+        // يمكنك هنا توجيه المستخدم إلى روابط حقيقية أو عرض نافذة منبثقة
+        console.log(`التفاعل: ${name} - ${actionDetail}`);
+    }
+
+    // ----- تحسين التنقل بالأسهم للتلفاز (grid direction) -----
+    // نريد عند استخدام الأسهم (up/down/left/right) أن ننتقل بين الأزرار بشكل طبيعي
+    // بما أن الأزرار مرتبة في شبكة باستخدام CSS Grid، يمكننا إضافة مستمع للوحة المفاتيح على الحاوية
+    // ونحاكي تحريك التركيز إلى العنصر المجاور حسب موقعه في الـ DOM.
+    // هذه الوظيفة مفيدة للتلفاز حيث لا تعتمد المتصفحات أحياناً على ترتيب grid للأسهم.
+    
+    function initTvNavigation() {
+        const buttons = document.querySelectorAll('.app-card');
+        if (buttons.length === 0) return;
+        
+        // حساب عدد الأعمدة بناءً على CSS الفعلي (grid)
+        function getGridColumnsCount() {
+            const gridStyle = window.getComputedStyle(gridContainer);
+            const gridTemplateColumns = gridStyle.gridTemplateColumns;
+            // تحسب عدد الأعمدة من قيمة grid-template-columns
+            if (gridTemplateColumns === 'none') return Math.floor(Math.sqrt(buttons.length)); // تقريبي
+            const columns = gridTemplateColumns.split(' ').length;
+            return columns;
+        }
+        
+        function getButtonIndex(button) {
+            return Array.from(buttons).indexOf(button);
+        }
+        
+        function moveFocus(current, direction) {
+            const cols = getGridColumnsCount();
+            const total = buttons.length;
+            const currentIdx = getButtonIndex(current);
+            if (currentIdx === -1) return;
+            
+            let nextIdx = currentIdx;
+            switch (direction) {
+                case 'ArrowRight': nextIdx = currentIdx + 1; break;
+                case 'ArrowLeft': nextIdx = currentIdx - 1; break;
+                case 'ArrowDown': nextIdx = currentIdx + cols; break;
+                case 'ArrowUp': nextIdx = currentIdx - cols; break;
+                default: return;
+            }
+            
+            // التحقق من الحدود
+            if (nextIdx >= 0 && nextIdx < total) {
+                // تأكد من أن العنصر ليس خارج الصف المطلوب (يمنع القفز بين الصفوف بشكل غير منتظم)
+                // إذا كان السهم يميناً وآخر عنصر في الصف، لا ننتقل
+                const currentRow = Math.floor(currentIdx / cols);
+                const nextRow = Math.floor(nextIdx / cols);
+                if ((direction === 'ArrowRight' && currentRow !== nextRow) ||
+                    (direction === 'ArrowLeft' && currentRow !== nextRow)) {
+                    return;
+                }
+                buttons[nextIdx].focus();
+            } else {
+                // اختياري: لفّ حول الحواف (يمكن تفعيله للتلفاز)
+                // إذا أردت wrap-around أزل التعليق:
+                /*
+                if (direction === 'ArrowRight' && (currentIdx % cols) === cols-1) {
+                    buttons[currentIdx - (cols-1)].focus();
+                } else if (direction === 'ArrowLeft' && (currentIdx % cols) === 0) {
+                    buttons[currentIdx + (cols-1)].focus();
+                } else if (direction === 'ArrowDown' && nextIdx >= total) {
+                    buttons[currentIdx % cols].focus();
+                } else if (direction === 'ArrowUp' && nextIdx < 0) {
+                    buttons[total - (cols - (currentIdx % cols)) - 1].focus();
+                }
+                */
+            }
+        }
+        
+        // إضافة مستمع للوحة المفاتيح على الحاوية
+        gridContainer.addEventListener('keydown', (e) => {
+            const arrows = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
+            if (arrows.includes(e.key)) {
+                e.preventDefault();
+                const focusedElement = document.activeElement;
+                if (focusedElement && focusedElement.classList && focusedElement.classList.contains('app-card')) {
+                    moveFocus(focusedElement, e.key);
+                } else {
+                    // إذا لم يكن هناك تركيز، نركز على أول زر
+                    if (buttons.length) buttons[0].focus();
+                }
+            }
+        });
+        
+        // للتأكد من أن التركيز الأولي قابل للاستخدام
+        if (buttons.length) {
+            // لا نعطيه التركيز تلقائياً لتجنب إزعاج مستخدم الهاتف، لكن عند استخدام الأسهم سيعمل.
+            // إضافة إشارة: أول زر يحصل على tabindex جيد.
+        }
+    }
+    
+    // إعادة تحديث التنقل بعد بناء الشبكة (في حالة تغيير ديناميكي لاحق)
+    function refreshNavigation() {
+        initTvNavigation();
+    }
+    
+    // بناء التطبيق
+    buildGrid();
+    // إضافة التنقل المتقدم للتلفاز بعد تحميل DOM
+    window.addEventListener('DOMContentLoaded', () => {
+        initTvNavigation();
+        // إضافة دعم لتذكر آخر تركيز (اختياري)
+        // لجعل التنقل بالأسهم سلساً حتى قبل النقر على أي زر
+        const firstButton = document.querySelector('.app-card');
+        if (firstButton && window.innerWidth > 768) {
+            // فقط على الشاشات الكبيرة (TV) يمكن تفعيل التركيز التلقائي، لكن تجنب على الهاتف
+            // للهاتف التركيز التلقائي قد يظهر لوحة مفاتيح، لذا نتحقق من قدرة اللمس
+            const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            if (!isTouchDevice) {
+                // إذا كان جهاز بدون لمس (غالباً تلفاز أو كمبيوتر)، نضيف تركيز خفيف
+                setTimeout(() => { firstButton.focus(); }, 100);
+            }
+        }
+    });
+    
+    // عند تغيير حجم الشاشة (تدوير الهاتف أو تغيير دقة التلفاز) نعيد حساب التنقل
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            refreshNavigation();
+        }, 200);
+    });
+    
+    // إضافة لمسة: عند النقر على النتيجة يتم مسحها (اختياري)
+    const resultArea = document.getElementById('resultArea');
+    resultArea.addEventListener('click', () => {
+        // مجرد تأثير مرح
+        resultMessageDiv.style.opacity = '0.8';
+        setTimeout(() => { resultMessageDiv.style.opacity = '1'; }, 150);
+    });
+</script>
+</body>
+</html>
