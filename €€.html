@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق مساجد | المصلي</title>
+    <!-- Font Awesome للأيقونات -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #f4f7fb;
+            color: #1e2b3a;
+            line-height: 1.6;
+            padding: 16px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* البطاقة العامة */
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border: 1px solid #e9eef2;
+        }
+
+        /* الهيدر */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #0b4f6c;
+        }
+        .header i {
+            font-size: 2rem;
+            color: #0b4f6c;
+        }
+        .date-badge {
+            background: #eef4f8;
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            color: #1e4e6f;
+        }
+
+        /* أوقات الصلاة */
+        .prayer-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .prayer-item {
+            background: #f9fcff;
+            border-radius: 18px;
+            padding: 12px 5px;
+            text-align: center;
+            border: 1px solid #dee7ef;
+        }
+        .prayer-name {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 6px;
+        }
+        .prayer-time {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #0b4f6c;
+        }
+        .next-prayer {
+            background: #0b4f6c;
+            color: white;
+        }
+        .next-prayer .prayer-name,
+        .next-prayer .prayer-time {
+            color: white;
+        }
+
+        /* شريط التنقل السفلي */
+        .nav-tabs {
+            display: flex;
+            justify-content: space-around;
+            background: white;
+            border-radius: 40px;
+            padding: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 18px;
+            border-radius: 30px;
+            color: #7f8c8d;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .nav-item.active {
+            background: #0b4f6c;
+            color: white;
+        }
+        .nav-item i {
+            font-size: 1.3rem;
+            margin-bottom: 4px;
+        }
+        .nav-item span {
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        /* قسم المساجد القريبة */
+        .mosque-list {
+            margin-top: 12px;
+        }
+        .mosque-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid #eef2f5;
+        }
+        .mosque-item:last-child {
+            border-bottom: none;
+        }
+        .mosque-icon {
+            width: 48px;
+            height: 48px;
+            background: #e9f2f9;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 15px;
+            color: #0b4f6c;
+        }
+        .mosque-info {
+            flex: 1;
+        }
+        .mosque-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        .mosque-distance {
+            color: #6b7b8c;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .location-btn {
+            background: #f1f9ff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 30px;
+            color: #0b4f6c;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .location-btn i {
+            margin-left: 5px;
+        }
+
+        /* قسم الأذكار */
+        .azkar-card {
+            background: #fef9e8;
+            border-right: 6px solid #e6b800;
+        }
+        .zekr-text {
+            font-size: 1.2rem;
+            margin: 15px 0;
+            line-height: 1.8;
+            color: #2c3e50;
+        }
+        .zekr-counter {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .counter-btn {
+            background: white;
+            border: 1px solid #ddd;
+            width: 48px;
+            height: 48px;
+            border-radius: 30px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #0b4f6c;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .count-display {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #0b4f6c;
+        }
+
+        /* أزرار */
+        .btn {
+            border: none;
+            background: #0b4f6c;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        /* للجوال */
+        @media (max-width: 480px) {
+            .prayer-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- هيدر مع التاريخ -->
+    <div class="card header">
+        <div>
+            <h1><i class="fas fa-mosque" style="margin-left: 10px;"></i>المصلي</h1>
+            <p style="color:#5e7a93;">دليلك للمساجد والأوقات</p>
+        </div>
+        <div class="date-badge" id="currentDate"></div>
+    </div>
+
+    <!-- بطاقة أوقات الصلاة (مثال - ثابتة) -->
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2><i class="fas fa-clock"></i> مواقيت الصلاة</h2>
+            <span style="color:#0b4f6c; font-size:0.9rem;">المدينة المنورة</span>
+        </div>
+        <div class="prayer-grid" id="prayerTimesContainer">
+            <!-- سيتم إنشاء العناصر بالجافاسكريبت -->
+        </div>
+        <div style="margin-top: 15px; text-align: left;">
+            <small>باقي على صلاة العصر: <span id="remainingTime">--:--:--</span></small>
+        </div>
+    </div>
+
+    <!-- شريط تنقل للأقسام -->
+    <div class="nav-tabs">
+        <div class="nav-item active" data-tab="mosques">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>المساجد</span>
+        </div>
+        <div class="nav-item" data-tab="azkar">
+            <i class="fas fa-book-open"></i>
+            <span>أذكار</span>
+        </div>
+        <div class="nav-item" data-tab="qibla">
+            <i class="fas fa-compass"></i>
+            <span>القبلة</span>
+        </div>
+    </div>
+
+    <!-- قسم المساجد (يظهر افتراضياً) -->
+    <div id="mosquesSection" class="card">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <h2><i class="fas fa-mosque"></i> مساجد قريبة</h2>
+            <button class="location-btn" id="getLocationBtn"><i class="fas fa-location-dot"></i> تحديد موقعي</button>
+        </div>
+        <div class="mosque-list" id="mosqueList">
+            <!-- قائمة المساجد الثابتة -->
+            <div class="mosque-item">
+                <div class="mosque-icon"><i class="fas fa-mosque fa-2x"></i></div>
+                <div class="mosque-info">
+                    <div class="mosque-name">مسجد قباء</div>
+                    <div class="mosque-distance"><i class="fas fa-walking"></i> ٨٥٠ متر</div>
+                </div>
+                <i class="fas fa-chevron-left" style="color:#b0c4de;"></i>
+            </div>
+            <div class="mosque-item">
+                <div class="mosque-icon"><i class="fas fa-mosque fa-2x"></i></div>
+                <div class="mosque-info">
+                    <div class="mosque-name">مسجد النور</div>
+                    <div class="mosque-distance"><i class="fas fa-car"></i> ١.٢ كم</div>
+                </div>
+                <i class="fas fa-chevron-left" style="color:#b0c4de;"></i>
+            </div>
+            <div class="mosque-item">
+                <div class="mosque-icon"><i class="fas fa-mosque fa-2x"></i></div>
+                <div class="mosque-info">
+                    <div class="mosque-name">جامع الراجحي</div>
+                    <div class="mosque-distance"><i class="fas fa-walking"></i> ٣٠٠ متر</div>
+                </div>
+                <i class="fas fa-chevron-left" style="color:#b0c4de;"></i>
+            </div>
+            <div class="mosque-item">
+                <div class="mosque-icon"><i class="fas fa-mosque fa-2x"></i></div>
+                <div class="mosque-info">
+                    <div class="mosque-name">مسجد الفتح</div>
+                    <div class="mosque-distance"><i class="fas fa-car"></i> ٢.٥ كم</div>
+                </div>
+                <i class="fas fa-chevron-left" style="color:#b0c4de;"></i>
+            </div>
+        </div>
+        <button class="btn" style="width:100%; margin-top: 15px;" onclick="alert('يمكن ربط خريطة المساجد لاحقاً')">
+            عرض كل المساجد <i class="fas fa-arrow-left"></i>
+        </button>
+    </div>
+
+    <!-- قسم الأذكار (مخفي افتراضياً) -->
+    <div id="azkarSection" class="card azkar-card" style="display: none;">
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <i class="fas fa-hands-praying fa-2x" style="color:#c49b00;"></i>
+            <h2>أذكار المساء</h2>
+        </div>
+        <div id="zekrContainer">
+            <p class="zekr-text" id="currentZekr">سبحان الله وبحمده</p>
+            <div class="zekr-counter">
+                <button class="counter-btn" id="resetCounter"><i class="fas fa-undo-alt"></i></button>
+                <span class="count-display" id="zekrCount">0</span>
+                <button class="counter-btn" id="incrementCounter"><i class="fas fa-plus"></i></button>
+            </div>
+        </div>
+        <div style="margin-top: 20px; display: flex; gap: 10px;">
+            <button class="location-btn" id="nextZekrBtn">الذكر التالي <i class="fas fa-forward"></i></button>
+        </div>
+    </div>
+
+    <!-- قسم القبلة (بسيط) -->
+    <div id="qiblaSection" class="card" style="display: none; text-align: center;">
+        <i class="fas fa-compass fa-4x" style="color:#0b4f6c; margin-bottom: 10px;"></i>
+        <h3>اتجاه القبلة</h3>
+        <p>اتجه نحو <strong>الجنوب الغربي</strong> (تقريباً)</p>
+        <p style="margin-top: 10px;">يُفضل استخدام البوصلة لتحديد دقيق.</p>
+    </div>
+</div>
+
+<script>
+    (function(){
+        // ---------- التاريخ ----------
+        function updateDate() {
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const dateStr = new Date().toLocaleDateString('ar-SA', options);
+            document.getElementById('currentDate').innerText = dateStr;
+        }
+        updateDate();
+
+        // ---------- أوقات الصلاة (ثابتة للعرض، يمكن تعديلها حسب المدينة) ----------
+        const prayerTimesData = [
+            { name: 'الفجر', time: '04:45' },
+            { name: 'الشروق', time: '06:10' },
+            { name: 'الظهر', time: '12:30' },
+            { name: 'العصر', time: '15:55' },
+            { name: 'المغرب', time: '18:25' },
+            { name: 'العشاء', time: '19:50' }
+        ];
+
+        const container = document.getElementById('prayerTimesContainer');
+        function renderPrayerTimes() {
+            let html = '';
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMin = now.getMinutes();
+            let nextPrayerIndex = -1;
+
+            prayerTimesData.forEach((p, idx) => {
+                const [h, m] = p.time.split(':').map(Number);
+                const prayerTotalMinutes = h * 60 + m;
+                const currentTotalMinutes = currentHour * 60 + currentMin;
+                // بافتراض أن اليوم لم ينته
+                if (nextPrayerIndex === -1 && prayerTotalMinutes > currentTotalMinutes) {
+                    nextPrayerIndex = idx;
+                }
+                // نحدد الصلاة التالية (العصر مثلاً)
+            });
+
+            prayerTimesData.forEach((p, idx) => {
+                const isNext = (idx === nextPrayerIndex);
+                html += `<div class="prayer-item ${isNext ? 'next-prayer' : ''}">
+                    <div class="prayer-name">${p.name}</div>
+                    <div class="prayer-time">${p.time}</div>
+                </div>`;
+            });
+            container.innerHTML = html;
+
+            // حساب الوقت المتبقي للصلاة التالية (إن وجد)
+            if (nextPrayerIndex !== -1) {
+                const nextPrayer = prayerTimesData[nextPrayerIndex];
+                const [h, m] = nextPrayer.time.split(':').map(Number);
+                const prayerTime = new Date();
+                prayerTime.setHours(h, m, 0, 0);
+                const diffMs = prayerTime - now;
+                if (diffMs > 0) {
+                    const hours = Math.floor(diffMs / (1000*60*60));
+                    const minutes = Math.floor((diffMs % (1000*60*60)) / (1000*60));
+                    const seconds = Math.floor((diffMs % (1000*60)) / 1000);
+                    document.getElementById('remainingTime').innerText = 
+                        `${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+                } else {
+                    document.getElementById('remainingTime').innerText = '--:--:--';
+                }
+            } else {
+                // جميع الصلوات انتهت، قد تكون صلاة الفجر القادمة غداً
+                document.getElementById('remainingTime').innerText = 'حتى الفجر غداً';
+            }
+        }
+        renderPrayerTimes();
+        setInterval(renderPrayerTimes, 1000); // تحديث كل ثانية للوقت المتبقي
+
+        // ---------- التبويب بين الأقسام ----------
+        const navItems = document.querySelectorAll('.nav-item');
+        const mosquesSection = document.getElementById('mosquesSection');
+        const azkarSection = document.getElementById('azkarSection');
+        const qiblaSection = document.getElementById('qiblaSection');
+
+        function switchTab(tabId) {
+            // إخفاء الكل
+            mosquesSection.style.display = 'none';
+            azkarSection.style.display = 'none';
+            qiblaSection.style.display = 'none';
+            // إظهار المطلوب
+            if (tabId === 'mosques') mosquesSection.style.display = 'block';
+            else if (tabId === 'azkar') azkarSection.style.display = 'block';
+            else if (tabId === 'qibla') qiblaSection.style.display = 'block';
+
+            // تحديث نشاط الزر
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.tab === tabId) item.classList.add('active');
+            });
+        }
+
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                switchTab(item.dataset.tab);
+            });
+        });
+
+        // ---------- عداد الأذكار ----------
+        const zekrText = document.getElementById('currentZekr');
+        const zekrCountSpan = document.getElementById('zekrCount');
+        const incrementBtn = document.getElementById('incrementCounter');
+        const resetBtn = document.getElementById('resetCounter');
+        const nextZekrBtn = document.getElementById('nextZekrBtn');
+
+        const azkarList = [
+            "سبحان الله وبحمده",
+            "سبحان الله العظيم",
+            "لا إله إلا الله وحده لا شريك له",
+            "أستغفر الله العظيم",
+            "اللهم صلِّ على محمد"
+        ];
+        let currentZekrIndex = 0;
+        let count = 0;
+
+        function updateZekrDisplay() {
+            zekrText.innerText = azkarList[currentZekrIndex];
+            count = 0;
+            zekrCountSpan.innerText = count;
+        }
+
+        incrementBtn.addEventListener('click', () => {
+            count++;
+            zekrCountSpan.innerText = count;
+        });
+
+        resetBtn.addEventListener('click', () => {
+            count = 0;
+            zekrCountSpan.innerText = count;
+        });
+
+        nextZekrBtn.addEventListener('click', () => {
+            currentZekrIndex = (currentZekrIndex + 1) % azkarList.length;
+            updateZekrDisplay();
+        });
+
+        // زر تحديد الموقع (محاكاة)
+        document.getElementById('getLocationBtn').addEventListener('click', function(){
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    alert(`موقعك: خط عرض ${pos.coords.latitude.toFixed(4)}، خط طول ${pos.coords.longitude.toFixed(4)}`);
+                }, () => {
+                    alert('لم نتمكن من الحصول على موقعك. تأكد من الصلاحيات.');
+                });
+            } else {
+                alert('متصفحك لا يدعم تحديد الموقع.');
+            }
+        });
+
+        // بدء الأذكار مع أول ذكر
+        updateZekrDisplay();
+
+        // يمكن ربط API مستقبلاً لجلب أوقات حقيقية حسب المدينة
+    })();
+</script>
+
+<!-- ملاحظة: لإضافة API حقيقي لأوقات الصلاة استخدم aladhan.com أو غيره -->
+</body>
+</html>
