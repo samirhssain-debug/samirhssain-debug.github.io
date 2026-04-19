@@ -1,16 +1,17 @@
 {
-  "name": "تطبيق المسجد",
-  "short_name": "المسجد",
-  "start_url": "./index.html", 
+  "name": "مسجد الفرقان",
+  "short_name": "مساجد",
+  "start_url": ".",
   "display": "standalone",
-  "background_color": "#0A1929",
+  "background_color": "#000000",
   "theme_color": "#D4AF37",
-  "description": "تطبيق مواقيت الصلاة وخدمات المسجد",
+  "description": "أوقات الصلاة مسجد الفرقان",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3014/3014091.png",
+      "src": "https://cdn-icons-png.flaticon.com/512/1589/1589608.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
