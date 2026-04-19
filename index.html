@@ -388,22 +388,27 @@
             animation: pulseGlow 2s infinite;
         }
         
-        /* ===== شريط الأذكار ينتقل للأعلى ===== */
+        /* ===== شريط الأذكار - لون أبيض مع إطار أسود ===== */
         .azkar-overlay-text {
             position: fixed;
             bottom: auto;
-            top: 15vh;
-            font-size: 3.5vh;
+            top: 10vh;
+            font-size: 4vh;
             max-width: 90%;
             text-align: center;
-            line-height: 1.8;
-            background: rgba(0,0,0,0.5);
-            padding: 5vh 6vw;
-            border-radius: 10vh;
+            line-height: 2;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 5vh 5vw;
+            border-radius: 5vh;
             backdrop-filter: blur(10px);
             white-space: pre-wrap;
             overflow-y: auto;
-            max-height: 70vh;
+            max-height: 80vh;
+            color: #FFFFFF;
+            border: 3px solid #333;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            font-weight: 600;
+            transition: opacity 0.5s ease;
         }
         
         /* ===== عداد الإقامة ملء الشاشة ===== */
@@ -928,8 +933,19 @@
             soundEnabled: true,
             adhanSoundType: 'full',
             currentTheme: 'gold',
-            morningAzkar: `أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، رَبِّ أَسْأَلُكَ خَيْرَ مَا فِي هَذَا الْيَوْمِ وَخَيْرَ مَا بَعْدَهُ، وَأَعُوذُ بِكَ مِنْ شَرِّ مَا فِي هَذَا الْيَوْمِ وَشَرِّ مَا بَعْدَهُ.\n\nسُبْحَانَ اللَّهِ وَبِحَمْدِهِ عَدَدَ خَلْقِهِ وَرِضَا نَفْسِهِ وَزِنَةَ عَرْشِهِ وَمِدَادَ كَلِمَاتِهِ (ثلاث مرات).\n\nاللَّهُمَّ بِكَ أَصْبَحْنَا وَبِكَ أَمْسَيْنَا وَبِكَ نَحْيَا وَبِكَ نَمُوتُ وَإِلَيْكَ النُّشُورُ.\n\nاللَّهُمَّ أَنْتَ رَبِّي لا إِلَهَ إِلا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ وَأَبُوءُ بِذَنْبِي فَاغْفِرْ لِي فَإِنَّهُ لا يَغْفِرُ الذُّنُوبَ إِلا أَنْتَ.`,
-            eveningAzkar: `أَمْسَيْنَا وَأَمْسَى الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، رَبِّ أَسْأَلُكَ خَيْرَ مَا فِي هَذِهِ اللَّيْلَةِ وَخَيْرَ مَا بَعْدَهَا، وَأَعُوذُ بِكَ مِنْ شَرِّ مَا فِي هَذِهِ اللَّيْلَةِ وَشَرِّ مَا بَعْدَهَا.\n\nسُبْحَانَ اللَّهِ وَبِحَمْدِهِ عَدَدَ خَلْقِهِ وَرِضَا نَفْسِهِ وَزِنَةَ عَرْشِهِ وَمِدَادَ كَلِمَاتِهِ (ثلاث مرات).\n\nاللَّهُمَّ بِكَ أَمْسَيْنَا وَبِكَ أَصْبَحْنَا وَبِكَ نَحْيَا وَبِكَ نَمُوتُ وَإِلَيْكَ الْمَصِيرُ.\n\nقُلْ هُوَ اللَّهُ أَحَدٌ (3 مرات)، قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ (3 مرات)، قُلْ أَعُوذُ بِرَبِّ النَّاسِ (3 مرات).\n\nاللَّهُمَّ أَنْتَ رَبِّي لا إِلَهَ إِلا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ وَأَبُوءُ بِذَنْبِي فَاغْفِرْ لِي فَإِنَّهُ لا يَغْفِرُ الذُّنُوبَ إِلا أَنْتَ.`,
+            morningAzkar: [
+                "أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، رَبِّ أَسْأَلُكَ خَيْرَ مَا فِي هَذَا الْيَوْمِ وَخَيْرَ مَا بَعْدَهُ، وَأَعُوذُ بِكَ مِنْ شَرِّ مَا فِي هَذَا الْيَوْمِ وَشَرِّ مَا بَعْدَهُ.",
+                "سُبْحَانَ اللَّهِ وَبِحَمْدِهِ عَدَدَ خَلْقِهِ وَرِضَا نَفْسِهِ وَزِنَةَ عَرْشِهِ وَمِدَادَ كَلِمَاتِهِ (ثلاث مرات).",
+                "اللَّهُمَّ بِكَ أَصْبَحْنَا وَبِكَ أَمْسَيْنَا وَبِكَ نَحْيَا وَبِكَ نَمُوتُ وَإِلَيْكَ النُّشُورُ.",
+                "اللَّهُمَّ أَنْتَ رَبِّي لا إِلَهَ إِلا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ وَأَبُوءُ بِذَنْبِي فَاغْفِرْ لِي فَإِنَّهُ لا يَغْفِرُ الذُّنُوبَ إِلا أَنْتَ."
+            ],
+            eveningAzkar: [
+                "أَمْسَيْنَا وَأَمْسَى الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، رَبِّ أَسْأَلُكَ خَيْرَ مَا فِي هَذِهِ اللَّيْلَةِ وَخَيْرَ مَا بَعْدَهَا، وَأَعُوذُ بِكَ مِنْ شَرِّ مَا فِي هَذِهِ اللَّيْلَةِ وَشَرِّ مَا بَعْدَهَا.",
+                "سُبْحَانَ اللَّهِ وَبِحَمْدِهِ عَدَدَ خَلْقِهِ وَرِضَا نَفْسِهِ وَزِنَةَ عَرْشِهِ وَمِدَادَ كَلِمَاتِهِ (ثلاث مرات).",
+                "اللَّهُمَّ بِكَ أَمْسَيْنَا وَبِكَ أَصْبَحْنَا وَبِكَ نَحْيَا وَبِكَ نَمُوتُ وَإِلَيْكَ الْمَصِيرُ.",
+                "قُلْ هُوَ اللَّهُ أَحَدٌ (3 مرات)، قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ (3 مرات)، قُلْ أَعُوذُ بِرَبِّ النَّاسِ (3 مرات).",
+                "اللَّهُمَّ أَنْتَ رَبِّي لا إِلَهَ إِلا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ وَأَبُوءُ بِذَنْبِي فَاغْفِرْ لِي فَإِنَّهُ لا يَغْفِرُ الذُّنُوبَ إِلا أَنْتَ."
+            ],
             iqamaDisplayDuration: 8
         };
 
@@ -1162,6 +1178,8 @@
         // ========== إدارة الـ Overlay ==========
         let overlayTimer;
         let iqamaFullscreenInterval;
+        let azkarInterval;
+        let currentAzkarIndex = 0;
         
         function showIqamaFullscreenCounter(prayerKey) {
             els.iqamaFullscreenCounter.classList.add('active');
@@ -1273,9 +1291,12 @@
                 
                 setTimeout(() => {
                     els.duaAfterPrayerOverlay.style.display = 'none';
-                    const hour = new Date().getHours();
-                    const azkarText = (hour >= 3 && hour < 12) ? state.morningAzkar : state.eveningAzkar;
-                    showOverlay('azkar', { text: azkarText, duration: 300 });
+                    // انتظر 8 دقائق بعد الإقامة ثم أظهر الأذكار
+                    setTimeout(() => {
+                        const hour = new Date().getHours();
+                        const azkarArray = (hour >= 3 && hour < 12) ? state.morningAzkar : state.eveningAzkar;
+                        showAzkarSlideshow(azkarArray);
+                    }, 8 * 60 * 1000); // 8 دقائق
                 }, 30000);
             } else if (type === 'azkar') {
                 els.azkarOverlay.style.display = 'block';
@@ -1283,10 +1304,40 @@
                 setTimeout(() => { hideOverlay(); renderPrayerGrid(); }, (data.duration || state.adhkarDuration) * 60000);
             }
         }
+        
+        // دالة عرض الأذكار بشكل متسلسل
+        function showAzkarSlideshow(azkarArray) {
+            currentAzkarIndex = 0;
+            els.azkarOverlay.style.display = 'block';
+            els.fullOverlay.classList.add('active');
+            
+            const showNextAzkar = () => {
+                if (currentAzkarIndex < azkarArray.length) {
+                    els.azkarOverlay.style.opacity = '0';
+                    setTimeout(() => {
+                        els.azkarOverlay.textContent = azkarArray[currentAzkarIndex];
+                        els.azkarOverlay.style.opacity = '1';
+                        currentAzkarIndex++;
+                    }, 300);
+                } else {
+                    // انتهت الأذكار
+                    clearInterval(azkarInterval);
+                    setTimeout(() => {
+                        hideOverlay();
+                        renderPrayerGrid();
+                    }, 5000);
+                }
+            };
+            
+            showNextAzkar();
+            azkarInterval = setInterval(showNextAzkar, 8000); // تغيير كل 8 ثواني
+        }
+        
         function hideOverlay() {
             els.fullOverlay.classList.remove('active');
             ['countdownCircleOverlay','adhanPhraseOverlay','duaAfterAdhanOverlay','prayerActiveOverlay','duaAfterPrayerOverlay','azkarOverlay'].forEach(id => $(id).style.display = 'none');
             if (overlayTimer) clearInterval(overlayTimer);
+            if (azkarInterval) clearInterval(azkarInterval);
         }
         function clearOverlay() { hideOverlay(); }
 
@@ -1306,10 +1357,11 @@
                     if (state.notifications) new Notification(`أذان ${k}`);
                 }
                 if (nowMin === iqama) showOverlay('prayer');
-                if (nowMin === iqama + 10) {
+                // أذكار بعد 8 دقائق من الإقامة
+                if (nowMin === iqama + 8) {
                     const hour = now.getHours();
-                    const azkarText = (hour >= 3 && hour < 12) ? state.morningAzkar : state.eveningAzkar;
-                    showOverlay('azkar', { text: azkarText, duration: 5 });
+                    const azkarArray = (hour >= 3 && hour < 12) ? state.morningAzkar : state.eveningAzkar;
+                    showAzkarSlideshow(azkarArray);
                 }
             }
             if (isFriday && state.jumuahEnabled) {
@@ -1337,10 +1389,10 @@
                     showIqamaFullscreenCounter(k);
                     return;
                 }
-                if (nowMin === iqama + 10) {
+                if (nowMin === iqama + 8) {
                     const hour = now.getHours();
-                    const azkarText = (hour >= 3 && hour < 12) ? state.morningAzkar : state.eveningAzkar;
-                    showOverlay('azkar', { text: azkarText, duration: 5 }); return;
+                    const azkarArray = (hour >= 3 && hour < 12) ? state.morningAzkar : state.eveningAzkar;
+                    showAzkarSlideshow(azkarArray); return;
                 }
             }
         }
@@ -1541,8 +1593,11 @@
 
         // ========== ربط الأحداث ==========
         els.fullscreenTopBtn.onclick = () => {
-            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-            else document.exitFullscreen();
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
         };
         els.settingsTopBtn.onclick = () => els.settingsDrawer.classList.add('open');
         
