@@ -1,0 +1,16 @@
+{
+  "name": "تطبيق المسجد",
+  "short_name": "المسجد",
+  "start_url": "./index.html", 
+  "display": "standalone",
+  "background_color": "#0A1929",
+  "theme_color": "#D4AF37",
+  "description": "تطبيق مواقيت الصلاة وخدمات المسجد",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3014/3014091.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
