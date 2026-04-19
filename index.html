@@ -493,6 +493,40 @@
         @media (max-width: 500px) {
             .prayer-grid { grid-template-columns: repeat(2, 1fr); }
         }
+        .hadith-box-main {
+    background: rgba(0,0,0,0.75);
+    border: 3px solid var(--primary);
+    border-radius: 25px;
+    padding: 20px;
+    margin: 20px 0;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0 30px rgba(0,0,0,0.8);
+}
+
+.hadith-box-main h3 {
+    color: var(--primary);
+    font-weight: 900;
+    font-size: 28px;
+    margin-bottom: 15px;
+    text-shadow: 0 0 15px black;
+}
+
+#hadith-text-main {
+    font-weight: 800;
+    font-size: 24px;
+    line-height: 1.9;
+    color: #fff;
+    text-shadow: 0 0 20px black;
+    font-family: var(--font-arabic);
+}
+
+.next-prayer-time {
+    font-weight: 900 !important;
+}
+.next-prayer-label {
+    font-weight: 800 !important;
+}
     </style>
 </head>
 <body id="appBody" class="idle-cursor">
@@ -502,6 +536,12 @@
     <div class="countdown-header">
         <div class="next-prayer-label" id="nextPrayerLabel">متبقي لصلاة الفجر</div>
         <div class="next-prayer-time" id="nextPrayerCountdown">--:--:--</div>
+        <div class="next-prayer-time" id="nextPrayerCountdown">--:--:--</div>
+    <!-- صندوق الحديث الجديد -->
+    <div class="hadith-box-main">
+        <h3>📜 حديث شريف</h3>
+        <p id="hadith-text-main">قال رسول الله ﷺ: "خيركم من تعلم القرآن وعلمه"</p>
+    </div>
     </div>
 
     <!-- ========== التاريخ واسم المسجد والساعة ========== -->
@@ -1389,7 +1429,8 @@
         function rotateHadith() {
             hadithIndex = (hadithIndex + 1) % state.hadithList.length;
             els.hadithTicker.textContent = state.hadithList[hadithIndex];
-        }
+           document.getElementById('hadith-text-main').textContent = state.hadiths[hadithIndex]; 
+        }   
         setInterval(rotateHadith, 25000);
 
         function showToast(msg) { const t = document.createElement('div'); t.className = 'toast-message'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 3000); }
