@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>لوحة المسجد الذكية · النسخة المحسنة للمغرب</title>
+    <!-- ... نفس الـ CSS بالكامل ... -->
+</head>
+<body id="appBody" class="idle-cursor">
+<!-- ... نفس الهيكل ... -->
+
+<script>
+(function(){
+"use strict";
+
+// ==================== تحسينات خاصة بالمغرب ====================
+const MOROCCO_TIMEZONE = 'Africa/Casablanca';
+const PRAYER_METHOD = 21; // طريقة وزارة الأوقاف المغربية
+
+// إضافة مدن مغربية إضافية مع إحداثيات دقيقة
+const MOROCCAN_CITIES = {
+    'Nador': { lat: 35.1686, lng: -2.9335, name: 'الناظور' },
+    'Casablanca': { lat: 33.5731, lng: -7.5898, name: 'الدار البيضاء' },
+    'Rabat': { lat: 34.0209, lng: -6.8416, name: 'الرباط' },
+    'Fes': { lat: 34.0181, lng: -5.0078, name: 'فاس' },
+    'Marrakech': { lat: 31.6295, lng: -7.9811, name: 'مراكش' },
+    'Tangier': { lat: 35.7595, lng: -5.8340, name: 'طنجة' },
+    'Agadir': { lat: 30.4278, lng: -9.5981, name: 'أكادير' },
+    'Meknes': { lat: 33.8935, lng: -5.5549, name: 'مكناس' },
+    'Oujda': { lat: 34.6811, lng: -1.9076, name: 'وجدة' },
+    'Kenitra': { lat: 34.2610, lng: -6.5802, name: 'القنيطرة' },
+    'Tetouan': { lat: 35.5785, lng: -5.3684, name: 'تطوان' },
+    'Safi': { lat: 32.2994, lng: -9.2372, name: 'آسفي' },
+    'Mohammedia': { lat: 33.6835, lng: -7.3849, name: 'المحمدية' },
+    'Khouribga': { lat: 32.8860, lng: -6.9075, name: 'خريبكة' },
+    'Beni Mellal': { lat: 32.3394, lng: -6.3608, name: 'بني ملال' },
+    'El Jadida': { lat: 33.2316, lng: -8.5007, name: 'الجديدة' },
+    'Taza': { lat: 34.2133, lng: -4.0086, name: 'تازة' },
+    'Settat': { lat: 33.0013, lng: -7.6196, name: 'سطات' },
+    'Larache': { lat: 35.1932, lng: -6.1505, name: 'العرائش' },
+    'Khemisset': { lat: 33.8159, lng: -6.0661, name: 'الخميسات' },
+    'Berkane': { lat: 34.9225, lng: -2.3188, name: 'بركان' },
+    'Taourirt': { lat: 34.4073, lng: -2.8945, name: 'تاوريرت' },
+    'Taroudant': { lat: 30.4727, lng: -8.8749, name: 'تارودانت' },
+    'Essaouira': { lat: 31.5085, lng: -9.7595, name: 'الصويرة' },
+    'Ouarzazate': { lat: 30.9189, lng: -6.8934, name: 'ورزازات' },
+    'Guelmim': { lat: 28.9884, lng: -10.0575, name: 'كلميم' },
+    'Laayoune': { lat: 27.1253, lng: -13.1625, name: 'العيون' },
+    'Dakhla': { lat: 23.7136, lng: -15.9355, name: 'الداخلة' }
+};
+
+// ==================== إصلاح مشكلة الوقتين ====================
+function getAccurateTimeRemaining(targetTimeStr) {
+    const now = new Date();
+    const [hours, minutes] = targetTimeStr.split(':').map(Number);
+    
+    // إنشاء وقت الهدف بنفس تاريخ اليوم
+    let target = new Date(now);
+    target.setHours(hours, minutes, 0, 0);
+    
+    // إذا كان الوقت قد مضى اليوم، نضيف يوم كامل
+    if (target < now) {
+        target.setDate(target.getDate() + 1);
+    }
+    
+    // حساب الفرق بالميلي ثانية
+    const diffMs = target - now;
+    const diffMinutes = Math.floor(diffMs / 60000);
+    const diffSeconds = Math.floor((diffMs % 60000) / 1000);
+    
+    return {
+        totalMinutes: diffMinutes,
+        hours: Math.floor(diffMinutes / 60),
+        minutes: diffMinutes % 60,
+        seconds: diffSeconds,
+        formatted: `${Math.floor(diffMinutes / 60).toString().padStart(2, '0')}:${(diffMinutes % 60).toString().padStart(2, '0')}:${diffSeconds.toString().padStart(2, '0')}`
+    };
+}
+
+// ==================== دالة محسنة لجلب الأوقات بدقة عالية ====================
+async function fetchAccurateTimes(cityName = null) {
+    const city = cityName || state.city;
+    const cityData = MOROCCAN_CITIES[city];
+    
+    if (!cityData) {
+        showToast('❌ المدينة غير مدعومة');
+        return;
+    }
+    
+    const today = new Date();
+    const dateStr = `${today.getDate()}-${today.getMonth() + 1}-${today.getFullYear()}`;
+    
+    // استخدام API مخصص للمغرب مع الإحداثيات الدقيقة
+    const url = `https://api.aladhan.com/v1/timings/${dateStr}?latitude=${cityData.lat}&longitude=${cityData.lng}&method=${PRAYER_METHOD}&tune=0,0,0,0,0,0,0,0,0`;
+    
+    try {
+        showToast('🔄 جاري تحديث الأوقات من وزارة الأوقاف...');
+        const res = await fetch(url);
+        const data = await res.json();
+        
+        if (data.code === 200) {
+            const timings = data.data.timings;
+            
+            // تحديث الأوقات مع مراعاة التوقيت المغربي
+            state.prayerTimes = {
+                Fajr: { 
+                    adhan: convertToMoroccanTime(timings.Fajr), 
+                    iqama: addMinutes(convertToMoroccanTime(timings.Fajr), state.iqamaMinutes.Fajr) 
+                },
+                Dhuhr: { 
+                    adhan: convertToMoroccanTime(timings.Dhuhr), 
+                    iqama: addMinutes(convertToMoroccanTime(timings.Dhuhr), state.iqamaMinutes.Dhuhr) 
+                },
+                Asr: { 
+                    adhan: convertToMoroccanTime(timings.Asr), 
+                    iqama: addMinutes(convertToMoroccanTime(timings.Asr), state.iqamaMinutes.Asr) 
+                },
+                Maghrib: { 
+                    adhan: convertToMoroccanTime(timings.Maghrib), 
+                    iqama: addMinutes(convertToMoroccanTime(timings.Maghrib), state.iqamaMinutes.Maghrib) 
+                },
+                Isha: { 
+                    adhan: convertToMoroccanTime(timings.Isha), 
+                    iqama: addMinutes(convertToMoroccanTime(timings.Isha), state.iqamaMinutes.Isha) 
+                }
+            };
+            
+            // حفظ اسم المدينة
+            state.city = city;
+            
+            // إعادة رسم الواجهة
+            renderPrayerGrid();
+            saveToStorage();
+            
+            showToast(`✅ تم تحديث أوقات ${cityData.name} بنجاح`);
+            
+            // تحديث الخلفية حسب الصلاة القادمة
+            updateBackgroundImage();
+        } else {
+            showToast('❌ فشل في جلب الأوقات');
+        }
+    } catch (error) {
+        console.error('Fetch error:', error);
+        showToast('❌ فشل الاتصال بالإنترنت');
+        // استخدام أوقات احتياطية للمغرب
+        useFallbackTimes(city);
+    }
+}
+
+// تحويل التوقيت إلى التوقيت المغربي الصحيح
+function convertToMoroccanTime(timeStr) {
+    // التوقيت من API يكون بصيغة HH:MM
+    const [h, m] = timeStr.split(':').map(Number);
+    
+    // إنشاء تاريخ باليوم الحالي
+    const d = new Date();
+    d.setHours(h, m, 0, 0);
+    
+    // تطبيق التوقيت المغربي (GMT+1 شتاءً، GMT+0 صيفاً)
+    // المغرب لا يطبق التوقيت الصيفي حالياً
+    const options = { hour12: false, hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Casablanca' };
+    return d.toLocaleTimeString('en-GB', options).slice(0, 5);
+}
+
+// أوقات احتياطية للمدن المغربية الرئيسية
+function useFallbackTimes(city) {
+    const fallbacks = {
+        'Nador': { Fajr: '05:01', Dhuhr: '13:16', Asr: '16:51', Maghrib: '19:52', Isha: '21:11' },
+        'Casablanca': { Fajr: '05:15', Dhuhr: '13:30', Asr: '17:00', Maghrib: '19:45', Isha: '21:00' },
+        'Rabat': { Fajr: '05:10', Dhuhr: '13:25', Asr: '16:55', Maghrib: '19:40', Isha: '20:55' },
+        'Fes': { Fajr: '04:55', Dhuhr: '13:20', Asr: '16:50', Maghrib: '19:35', Isha: '20:50' },
+        'Marrakech': { Fajr: '05:45', Dhuhr: '13:35', Asr: '17:05', Maghrib: '19:50', Isha: '21:05' },
+        'Tangier': { Fajr: '05:00', Dhuhr: '13:25', Asr: '16:55', Maghrib: '19:40', Isha: '20:55' }
+    };
+    
+    const fb = fallbacks[city] || fallbacks['Nador'];
+    
+    state.prayerTimes = {
+        Fajr: { adhan: fb.Fajr, iqama: addMinutes(fb.Fajr, state.iqamaMinutes.Fajr) },
+        Dhuhr: { adhan: fb.Dhuhr, iqama: addMinutes(fb.Dhuhr, state.iqamaMinutes.Dhuhr) },
+        Asr: { adhan: fb.Asr, iqama: addMinutes(fb.Asr, state.iqamaMinutes.Asr) },
+        Maghrib: { adhan: fb.Maghrib, iqama: addMinutes(fb.Maghrib, state.iqamaMinutes.Maghrib) },
+        Isha: { adhan: fb.Isha, iqama: addMinutes(fb.Isha, state.iqamaMinutes.Isha) }
+    };
+    
+    renderPrayerGrid();
+    showToast('⚠️ تم استخدام الأوقات الاحتياطية');
+}
+
+// ==================== تحسين عرض الوقت المتبقي ====================
+function startMainCountdown(prayerKey) {
+    if (mainCountdownInterval) clearInterval(mainCountdownInterval);
+    
+    const update = () => {
+        const targetTime = getEffectiveTime(prayerKey);
+        const remaining = getAccurateTimeRemaining(targetTime);
+        
+        // عرض الوقت المتبقي
+        els.nextPrayerCountdown.textContent = remaining.formatted;
+        
+        // تحديث اللون عند اقتراب الوقت (أقل من 10 دقائق)
+        if (remaining.totalMinutes <= 10 && remaining.totalMinutes > 0) {
+            els.nextPrayerCountdown.style.color = '#ff6b6b';
+        } else {
+            els.nextPrayerCountdown.style.color = '#fff';
+        }
+        
+        // إعادة رسم الشبكة عند انتهاء الوقت
+        if (remaining.totalMinutes <= 0) {
+            renderPrayerGrid();
+            updateBackgroundImage();
+        }
+    };
+    
+    update();
+    mainCountdownInterval = setInterval(update, 1000);
+}
+
+// ==================== تحسين تحديد الصلاة القادمة ====================
+function getNextPrayer() {
+    const now = new Date();
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    
+    let nextPrayer = null;
+    let minDiff = Infinity;
+    
+    PRAYER_ORDER.forEach(prayerKey => {
+        const prayerTime = getEffectiveTime(prayerKey);
+        const prayerMinutes = parseTime(prayerTime);
+        
+        let diff = prayerMinutes - nowMinutes;
+        if (diff < 0) diff += 1440; // إضافة يوم كامل للصلوات القادمة غداً
+        
+        if (diff < minDiff) {
+            minDiff = diff;
+            nextPrayer = prayerKey;
+        }
+    });
+    
+    return { prayer: nextPrayer, minutesRemaining: minDiff };
+}
+
+// ==================== تحسين عرض بطاقات الصلاة ====================
+function renderPrayerGrid() {
+    const nextInfo = getNextPrayer();
+    const nextPrayer = nextInfo.prayer;
+    
+    let html = '';
+    PRAYER_ORDER.forEach(prayerKey => {
+        const adhanTime = getEffectiveTime(prayerKey);
+        const iqamaTime = getEffectiveIqama(prayerKey);
+        const iqamaMinutes = state.iqamaMinutes[prayerKey] || 0;
+        const isNext = (prayerKey === nextPrayer);
+        
+        if (isNext) {
+            applyTheme(state.themePerPrayer[prayerKey] || state.theme);
+        }
+        
+        html += `<div class="prayer-card ${isNext ? 'next' : ''}" data-prayer="${prayerKey}">
+            <div class="prayer-name">${PRAYER_NAMES[prayerKey]}</div>
+            <div class="prayer-time">${adhanTime}</div>
+            <div class="iqama">إقامة (${iqamaMinutes}) ${iqamaTime}</div>
+        </div>`;
+    });
+    
+    els.prayerGrid.innerHTML = html;
+    
+    // تحديث عنوان الوقت المتبقي
+    if (nextPrayer) {
+        els.nextPrayerLabel.textContent = `متبقي لصلاة ${PRAYER_NAMES[nextPrayer]}`;
+        startMainCountdown(nextPrayer);
+        updateBackgroundImage();
+    }
+    
+    // ربط أحداث النقر
+    document.querySelectorAll('.prayer-card').forEach(card => {
+        card.addEventListener('click', () => openIqamaModal(card.dataset.prayer));
+    });
+}
+
+// ==================== تحسين التحقق من الجدول ====================
+function checkSchedule() {
+    const now = new Date();
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    const isFriday = (now.getDay() === 5);
+    
+    // التحقق من الصلوات الخمس
+    for (let prayerKey in state.prayerTimes) {
+        const adhanMinutes = parseTime(getEffectiveTime(prayerKey));
+        const iqamaMinutes = parseTime(getEffectiveIqama(prayerKey));
+        
+        // قبل الأذان بدقيقة
+        if (nowMinutes === adhanMinutes - 1) {
+            showOverlay('countdownAdhan', { seconds: 60, prayerKey });
+            return;
+        }
+        
+        // وقت الأذان
+        if (nowMinutes === adhanMinutes) {
+            showOverlay('adhan', { prayerKey });
+            return;
+        }
+        
+        // قبل الإقامة بدقيقتين
+        if (nowMinutes === iqamaMinutes - 2) {
+            showIqamaFullscreenCounter(prayerKey);
+            return;
+        }
+        
+        // وقت الإقامة
+        if (nowMinutes === iqamaMinutes) {
+            showOverlay('prayer', { prayerKey });
+            return;
+        }
+    }
+    
+    // التحقق من صلاة الجمعة
+    if (isFriday && state.jumuahEnabled) {
+        const jAdhan = parseTime(state.jumuahAdhan1);
+        const jKhutbah = state.jumuahAutoKhutbah ? jAdhan + 15 : parseTime(state.jumuahKhutbah);
+        
+        if (nowMinutes === jAdhan - 1) {
+            showOverlay('countdownAdhan', { seconds: 60, prayerKey: 'Jumuah' });
+            return;
+        }
+        if (nowMinutes === jAdhan) {
+            showOverlay('adhan', { prayerKey: 'Jumuah' });
+            return;
+        }
+        if (nowMinutes === jKhutbah - 2) {
+            showIqamaFullscreenCounter('Dhuhr');
+            return;
+        }
+        if (nowMinutes === jKhutbah) {
+            showOverlay('prayer', { prayerKey: 'Jumuah' });
+            return;
+        }
+    }
+}
+
+// ==================== إضافة ميزة وضع الإمام ====================
+const IMAM_PASSWORD = '786786'; // كلمة مرور خاصة للإمام
+
+let imamMode = false;
+let imamControlsVisible = false;
+
+function toggleImamMode() {
+    const enteredPass = prompt('🔐 أدخل كلمة مرور الإمام:');
+    if (enteredPass === IMAM_PASSWORD || enteredPass === state.password) {
+        imamMode = !imamMode;
+        if (imamMode) {
+            showImamControls();
+            showToast('✅ وضع الإمام مفعل - يمكنك التحكم بالإقامة');
+        } else {
+            hideImamControls();
+            showToast('🔒 تم إلغاء وضع الإمام');
+        }
+    } else {
+        alert('❌ كلمة مرور خاطئة');
+    }
+}
+
+function showImamControls() {
+    // إنشاء لوحة تحكم سريعة للإمام
+    const controlsDiv = document.createElement('div');
+    controlsDiv.id = 'imamQuickControls';
+    controlsDiv.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.9);
+        backdrop-filter: blur(10px);
+        padding: 20px;
+        border-radius: 60px;
+        display: flex;
+        gap: 15px;
+        z-index: 5000;
+        border: 3px solid var(--primary);
+        box-shadow: 0 0 30px var(--primary-glow);
+    `;
+    
+    PRAYER_ORDER.forEach(prayer => {
+        const btn = document.createElement('button');
+        btn.textContent = `إقامة ${PRAYER_NAMES[prayer]}`;
+        btn.style.cssText = `
+            padding: 15px 25px;
+            font-size: 2.5vh;
+            background: var(--primary);
+            color: #000;
+            border: none;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        `;
+        btn.onclick = () => {
+            if (confirm(`هل أنت متأكد من إقامة صلاة ${PRAYER_NAMES[prayer]} الآن؟`)) {
+                showIqamaFullscreenCounter(prayer);
+            }
+        };
+        controlsDiv.appendChild(btn);
+    });
+    
+    // زر الإغلاق
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '✕';
+    closeBtn.style.cssText = `
+        padding: 15px 20px;
+        font-size: 3vh;
+        background: #333;
+        color: #fff;
+        border: none;
+        border-radius: 40px;
+        cursor: pointer;
+    `;
+    closeBtn.onclick = () => {
+        imamMode = false;
+        hideImamControls();
+    };
+    controlsDiv.appendChild(closeBtn);
+    
+    document.body.appendChild(controlsDiv);
+    imamControlsVisible = true;
+}
+
+function hideImamControls() {
+    const controls = document.getElementById('imamQuickControls');
+    if (controls) controls.remove();
+    imamControlsVisible = false;
+}
+
+// إضافة اختصار لوحة المفاتيح للإمام (Ctrl + Shift + I)
+document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+        e.preventDefault();
+        toggleImamMode();
+    }
+});
+
+// ==================== استبدال دالة fetchTimes الأصلية ====================
+const originalFetchTimes = fetchTimes;
+fetchTimes = async function() {
+    const city = els.citySelect.value;
+    await fetchAccurateTimes(city);
+};
+
+// ==================== تحسين فحص الحالة الحالية ====================
+function checkCurrentState() {
+    const now = new Date();
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    
+    for (let prayerKey in state.prayerTimes) {
+        const adhanMinutes = parseTime(getEffectiveTime(prayerKey));
+        const iqamaMinutes = parseTime(getEffectiveIqama(prayerKey));
+        
+        // في وقت الأذان
+        if (nowMinutes >= adhanMinutes && nowMinutes < adhanMinutes + 1) {
+            showOverlay('adhan', { prayerKey });
+            return;
+        }
+        
+        // بين الأذان والإقامة
+        if (nowMinutes >= adhanMinutes && nowMinutes < iqamaMinutes) {
+            const diff = iqamaMinutes - nowMinutes;
+            if (diff <= 2) {
+                showIqamaFullscreenCounter(prayerKey);
+            } else {
+                scheduleIqamaCounter(prayerKey);
+            }
+            return;
+        }
+        
+        // في وقت الإقامة
+        if (nowMinutes >= iqamaMinutes && nowMinutes < iqamaMinutes + 1) {
+            showOverlay('prayer', { prayerKey });
+            return;
+        }
+    }
+    
+    renderPrayerGrid();
+}
+
+// ==================== تهيئة القائمة المنسدلة للمدن ====================
+function populateCitySelect() {
+    const select = els.citySelect;
+    select.innerHTML = '';
+    
+    Object.entries(MOROCCAN_CITIES).forEach(([key, data]) => {
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = data.name;
+        if (key === state.city) option.selected = true;
+        select.appendChild(option);
+    });
+}
+
+// ==================== إضافة زر وضع الإمام للإعدادات ====================
+function addImamButtonToSettings() {
+    const settingsBlock = document.createElement('div');
+    settingsBlock.className = 'setting-block';
+    settingsBlock.innerHTML = `
+        <label>👑 وضع الإمام</label>
+        <button id="imamModeToggleBtn">🔓 تفعيل وضع الإمام</button>
+        <small style="color:#aaa; display:block; margin-top:10px;">
+            اختصار: Ctrl + Shift + I<br>
+            كلمة المرور: ${IMAM_PASSWORD}
+        </small>
+    `;
+    
+    els.settingsContent.appendChild(settingsBlock);
+    
+    $('imamModeToggleBtn').onclick = toggleImamMode;
+}
+
+// ==================== تحديث التاريخ الهجري بدقة ====================
+function updateHijriDateAccurate() {
+    try {
+        const today = new Date();
+        // استخدام تقويم أم القرى مع تعديل للمغرب
+        const options = { 
+            day: 'numeric', 
+            month: 'long', 
+            year: 'numeric',
+            calendar: 'islamic-umalqura'
+        };
+        
+        let hijriStr = today.toLocaleDateString('ar-SA-u-ca-islamic-umalqura', options);
+        // تصحيح الفارق للمغرب (عادة +1 يوم)
+        if (state.hijriOffset !== 0) {
+            const adjusted = new Date(today);
+            adjusted.setDate(adjusted.getDate() + state.hijriOffset);
+            hijriStr = adjusted.toLocaleDateString('ar-SA-u-ca-islamic-umalqura', options);
+        }
+        
+        els.hijriDate.textContent = hijriStr + ' هـ';
+    } catch (e) {
+        console.error('Hijri date error:', e);
+        els.hijriDate.textContent = '... هـ';
+    }
+}
+
+// استبدال دالة التحديث الأصلية
+const originalUpdateDateTime = updateDateTime;
+updateDateTime = function() {
+    const n = new Date();
+    els.liveClockMain.textContent = formatTimeEn(n);
+    
+    const gregStr = n.toLocaleDateString('ar-MA', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    });
+    els.gregorianDate.textContent = gregStr;
+    
+    updateHijriDateAccurate();
+};
+
+// ==================== بدء التشغيل المحسن ====================
+function initializeApp() {
+    // تحميل الإعدادات
+    loadFromStorage();
+    
+    // تهيئة قائمة المدن
+    populateCitySelect();
+    
+    // حفظ الإعدادات الافتراضية إذا لم تكن موجودة
+    if (!localStorage.getItem('mosqueFinalV8')) {
+        saveToStorage();
+    }
+    
+    // تطبيق الإعدادات
+    applySettingsToUI();
+    
+    // إضافة زر وضع الإمام
+    addImamButtonToSettings();
+    
+    // بدء المؤقتات
+    setInterval(updateDateTime, 1000);
+    setInterval(rotateVerse, 15000);
+    setInterval(rotateHadith, 25000);
+    setInterval(checkSchedule, 30000); // فحص كل 30 ثانية بدلاً من دقيقة
+    
+    // تحديث فوري
+    updateDateTime();
+    rotateVerse();
+    
+    // فحص الحالة بعد تحميل الصفحة
+    setTimeout(() => checkCurrentState(), 500);
+    
+    // جلب الأوقات الدقيقة للمدينة المحددة
+    setTimeout(() => fetchAccurateTimes(state.city), 1000);
+    
+    showToast('🕌 تم تحميل لوحة المسجد الذكية · المغرب');
+}
+
+// ==================== تشغيل التطبيق ====================
+initializeApp();
+
+})();
+</script>
+</body>
+</html>
