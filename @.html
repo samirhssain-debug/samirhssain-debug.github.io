@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🕌 لوحة المسجد الذكية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --gold: #FFD700;
+            --bg: #08111e;
+            --text: #F0F6FF;
+            --font: 'Scheherazade New', 'Amiri', serif;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+        .mosque-title {
+            font-size: 8vw;
+            font-weight: 900;
+            color: var(--gold);
+            margin-bottom: 20px;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+        }
+        .live-clock {
+            font-size: 15vw;
+            font-weight: 900;
+            font-family: monospace;
+            direction: ltr;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+        .date-text {
+            font-size: 4vw;
+            margin-bottom: 5px;
+        }
+        .hijri-text {
+            font-size: 3.5vw;
+            color: #aaa;
+            margin-bottom: 20px;
+        }
+        .prayer-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .prayer-item {
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 15px;
+            min-width: 100px;
+        }
+        .prayer-name {
+            font-size: 4vw;
+            color: var(--gold);
+        }
+        .prayer-time {
+            font-size: 5vw;
+            font-family: monospace;
+            direction: ltr;
+            color: #fff;
+        }
+        .iqama-time {
+            font-size: 3.5vw;
+            color: #aaddff;
+            direction: ltr;
+        }
+        .countdown {
+            font-size: 5vw;
+            color: #ff6666;
+            direction: ltr;
+            margin: 10px 0;
+        }
+        .verse {
+            font-size: 4vw;
+            color: #FFF8DC;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="mosque-title" id="mosqueName">🕌 مسجد الفرقان</div>
+    <div class="live-clock" id="clock">--:--:--</div>
+    <div class="date-text" id="gregorian"></div>
+    <div class="hijri-text" id="hijri"></div>
+    <div class="countdown" id="countdown"></div>
+    <div class="prayer-grid" id="prayerGrid"></div>
+    <div class="verse" id="verse"></div>
+
+    <script>
+        var times = {
+            Fajr: { adhan: '05:01', iqama: '05:23', name: 'الفجر' },
+            Dhuhr: { adhan: '13:16', iqama: '13:25', name: 'الظهر' },
+            Asr: { adhan: '16:51', iqama: '17:06', name: 'العصر' },
+            Maghrib: { adhan: '19:52', iqama: '20:02', name: 'المغرب' },
+            Isha: { adhan: '21:11', iqama: '21:26', name: 'العشاء' }
+        };
+
+        var verses = [
+            "﴿ وَأَقِيمُوا الصَّلَاةَ وَآتُوا الزَّكَاةَ وَارْكَعُوا مَعَ الرَّاكِعِينَ ﴾",
+            "﴿ إِنَّ الصَّلَاةَ تَنْهَىٰ عَنِ الْفَحْشَاءِ وَالْمُنكَرِ ﴾",
+            "﴿ حَافِظُوا عَلَى الصَّلَوَاتِ وَالصَّلَاةِ الْوُسْطَىٰ ﴾"
+        ];
+
+        function update() {
+            var now = new Date();
+
+            document.getElementById('clock').textContent =
+                now.toLocaleTimeString('en-GB', { hour12: false });
+
+            document.getElementById('gregorian').textContent =
+                now.toLocaleDateString('ar-MA', { weekday: 'long', year: 'numeric', month: 'long',
+                day: 'numeric' });
+
+            try {
+                document.getElementById('hijri').textContent =
+                    now.toLocaleDateString('ar-SA-u-ca-islamic-umalqura', { day: 'numeric', month: 'long',
+                        year: 'numeric' }) + ' هـ';
+            } catch (e) {}
+
+            var html = '';
+            var nextPrayer = null;
+            var minDiff = Infinity;
+            var nowMin = now.getHours() * 60 + now.getMinutes();
+
+            for (var key in times) {
+                var val = times[key];
+                var parts = val.adhan.split(':');
+                var h = parseInt(parts[0]);
+                var m = parseInt(parts[1]);
+                var diff = (h * 60 + m) - nowMin;
+                if (diff < 0) diff += 1440;
+                if (diff < minDiff && diff > 0) { minDiff = diff;
+                    nextPrayer = key; }
+
+                html += '<div class="prayer-item">' +
+                    '<div class="prayer-name">' + val.name + '</div>' +
+                    '<div class="prayer-time">' + val.adhan + '</div>' +
+                    '<div class="iqama-time">' + val.iqama + '</div>' +
+                    '</div>';
+            }
+            document.getElementById('prayerGrid').innerHTML = html;
+
+            if (nextPrayer) {
+                var h = Math.floor(minDiff / 60);
+                var m = minDiff % 60;
+                document.getElementById('countdown').textContent =
+                    'متبقٍ لصلاة ' + times[nextPrayer].name + ': ' + h + ':' + (m < 10 ? '0' : '') + m;
+            }
+
+            document.getElementById('verse').textContent =
+                verses[Math.floor(Date.now() / 18000) % verses.length];
+        }
+
+        update();
+        setInterval(update, 1000);
+    </script>
+
+</body>
+</html>
