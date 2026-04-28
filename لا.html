@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="لوحة المسجد الذكية - الإصدار الاحترافي الكامل">
+<title>🕌 لوحة المسجد الذكية Pro - الإصدار العاشر</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<style>
+:root {
+  /* المتغيرات الافتراضية - تتغير ديناميكياً مع الثيم */
+  --main-gold: #FFD700;
+  --main-glow: rgba(255, 215, 0, 0.5);
+  --bg-dark: #08111e;
+  --text-white: #F0F6FF;
+  --ui-blur: 15px;
+  --card-opacity: 0.1;
+  --font-quran: 'Amiri Quran', serif;
+  --font-main: 'Scheherazade New', serif;
+}
+
+/* 🎨 نظام الـ 10 ثيمات الكامل */
+.theme-gold { --main-gold: #FFD700; --main-glow: rgba(255,215,0,0.6); }
+.theme-emerald { --main-gold: #50C878; --main-glow: rgba(80,200,120,0.6); }
+.theme-blue { --main-gold: #4fc3f7; --main-glow: rgba(79,195,247,0.6); }
+.theme-purple { --main-gold: #ce93d8; --main-glow: rgba(206,147,216,0.6); }
+.theme-red { --main-gold: #ff6b6b; --main-glow: rgba(255,107,107,0.6); }
+.theme-turquoise { --main-gold: #40E0D0; --main-glow: rgba(64,224,208,0.6); }
+.theme-amber { --main-gold: #FFBF00; --main-glow: rgba(255,191,0,0.6); }
+.theme-rose { --main-gold: #FF66CC; --main-glow: rgba(255,102,204,0.6); }
+.theme-silver { --main-gold: #C0C0C0; --main-glow: rgba(192,192,192,0.5); }
+.theme-royal { --main-gold: #9b59b6; --main-glow: rgba(155,89,182,0.6); }
+
+/* إلغاء الفأرة العادية */
+* { cursor: none !important; margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg-dark);
+  color: var(--text-white);
+  height: 100vh; width: 100vw;
+  overflow: hidden;
+  font-family: var(--font-main);
+  transition: all 1s ease;
+}
+
+/* ✨ الفأرة الانسيابية المخصصة */
+#customCursor {
+  position: fixed; width: 25px; height: 25px;
+  background: var(--main-gold);
+  border-radius: 50%; pointer-events: none;
+  z-index: 1000000; mix-blend-mode: difference;
+  box-shadow: 0 0 20px var(--main-glow);
+  transition: transform 0.15s ease-out;
+}
+.cursor-hover { transform: scale(2.5); background: #fff !important; }
+
+/* 🎬 خلفية الفيديو الدائمة */
+#bgVideo {
+  position: fixed; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; z-index: 0; display: none;
+}
+#bgVideo.active { display: block; }
+
+/* 🌫️ الواجهة الزجاجية الشفافة */
+.dashboard {
+  position: relative; z-index: 10;
+  height: 100vh; width: 100vw;
+  display: flex; flex-direction: column;
+  justify-content: space-between;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(var(--ui-blur));
+  -webkit-backdrop-filter: blur(var(--ui-blur));
+  padding: 1.5vh 1.8vw;
+}
+
+/* 🕰️ دائرة التقدم (اللمسة الإبداعية) */
+.clock-section {
+  position: relative; text-align: center;
+}
+.progress-ring {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  width: 25vh; height: 25vh;
+}
+.progress-ring circle {
+  fill: none; stroke-width: 4;
+  stroke: var(--main-gold);
+  stroke-dasharray: 628; /* 2 * PI * 100 */
+  stroke-dashoffset: 628;
+  transition: stroke-dashoffset 1s linear;
+  opacity: 0.3;
+}
+
+.live-clock-main {
+  font-size: 13vh; font-weight: 900; font-family: monospace;
+  color: var(--main-gold); text-shadow: 0 0 30px var(--main-glow);
+  z-index: 15; position: relative;
+}
+
+/* 🕋 بطاقات الصلاة الشفافة */
+.prayer-card {
+  background: rgba(255, 255, 255, var(--card-opacity)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 2.5vh; padding: 2vh 0.5vw;
+  text-align: center; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.prayer-card.next {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border: 2px solid var(--main-gold) !important;
+  box-shadow: 0 0 50px var(--main-glow) !important;
+  transform: scale(1.05);
+  animation: cardHeartbeat 3s infinite;
+}
+
+@keyframes cardHeartbeat {
+  0% { box-shadow: 0 0 30px var(--main-glow); }
+  50% { box-shadow: 0 0 60px var(--main-gold); }
+  100% { box-shadow: 0 0 30px var(--main-glow); }
+}
+
+.prayer-name {
+  font-size: 5vh; font-weight: 900; color: var(--main-gold);
+  text-shadow: 0 0 15px var(--main-glow);
+}
+
+.prayer-time { font-size: 6vh; font-weight: 900; font-family: monospace; }
+
+/* 📜 شريط الأحاديث والآيات */
+.verse-section {
+  font-family: var(--font-quran); text-align: center;
+  font-size: 4.5vh; color: #FFF8DC;
+  text-shadow: 0 0 15px var(--main-glow);
+  padding: 1vh 0;
+}
+
+.ticker-wrapper {
+  background: rgba(0,0,0,0.4); overflow: hidden; padding: 10px 0;
+}
+.ticker-content {
+  white-space: nowrap; font-size: 4vh;
+  display: inline-block; animation: ticker 45s linear infinite;
+}
+@keyframes ticker { 
+  0% { transform: translateX(-100%); } 
+  100% { transform: translateX(100%); } 
+}
+
+/* ⚙️ لوحة الإعدادات الاحترافية */
+.settings-drawer {
+  position: fixed; top: 0; right: -600px; width: 550px;
+  height: 100%; background: rgba(10, 20, 32, 0.98);
+  z-index: 100000; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 25px; border-left: 4px solid var(--main-gold);
+  overflow-y: auto;
+}
+.settings-drawer.open { right: 0; }
+.setting-item { margin-bottom: 25px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; }
+.setting-item label { display: block; color: var(--main-gold); margin-bottom: 10px; font-weight: bold; }
+
+select, input, textarea {
+  width: 100%; padding: 12px; background: #000; border: 1px solid #333; color: #fff; border-radius: 8px;
+}
+
+/* 🕹️ أزرار التحكم العلوية */
+.top-controls {
+  position: fixed; top: 15px; left: 15px; z-index: 500;
+  display: flex; gap: 12px; opacity: 0.1; transition: 0.5s;
+}
+.top-controls:hover { opacity: 1; }
+.btn-circle {
+  width: 50px; height: 50px; border-radius: 15px; background: rgba(0,0,0,0.6);
+  border: 1.5px solid var(--main-gold); color: var(--main-gold);
+  display: flex; align-items: center; justify-content: center; font-size: 20px;
+}
+
+/* 🌑 شاشة الإقامة والسواد */
+.full-overlay {
+  position: fixed; inset: 0; background: #000; z-index: 5000;
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+}
+.full-overlay.active { display: flex; }
+
+</style>
+</head>
+<body id="appBody" class="theme-gold">
+
+<div id="customCursor"></div>
+<video id="bgVideo" autoplay loop muted playsinline></video>
+
+<!-- 🕌 شاشة الترخيص والترحيب -->
+<div id="licenseScreen" onclick="enterApp()" style="position:fixed; inset:0; background:#050b14; z-index:2000000; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
+    <i class="fas fa-mosque" style="font-size:15vh; color:var(--main-gold); margin-bottom:3vh;"></i>
+    <h1 style="font-size:8vh; color:var(--main-gold);">🕌 هَذَا الْعَمَلُ خَالِصٌ لِلَّهِ 🕌</h1>
+    <p style="font-size:4vh; color:white; margin:2vh;">يُمنع بيعه أو المتاجرة به - مجاني بالكامل للمساجد</p>
+    <button onclick="enterApp()" style="background:var(--main-gold); color:black; border:none; padding:15px 80px; font-size:4vh; border-radius:50px; font-weight:bold;">دُخُول</button>
+</div>
+
+<div class="dashboard">
+    <!-- القسم العلوي -->
+    <div class="clock-section">
+        <svg class="progress-ring">
+            <circle cx="12.5vh" cy="12.5vh" r="12vh" id="timerCircle"></circle>
+        </svg>
+        <div class="live-clock-main" id="liveClockMain">00:00:00</div>
+        <div id="mosqueNameDisplay" style="font-size: 8vh; font-weight: 900;">مسجد الفرقان</div>
+        
+        <div style="display:flex; justify-content:space-around; align-items:center; width:90%; margin:2vh auto;">
+            <div id="gregorianDate" style="font-size: 3.5vh;"></div>
+            <div id="nextPrayerContainer" style="background:rgba(0,0,0,0.3); padding:10px 40px; border-radius:50px; border:2px solid var(--main-gold);">
+                <div id="nextPrayerLabel" style="font-size:2.5vh; color:var(--main-gold);">المتبقي لصلاة المغرب</div>
+                <div id="nextPrayerCountdown" style="font-size:6vh; font-family:monospace; font-weight:bold;">00:00:00</div>
+            </div>
+            <div id="hijriDate" style="font-size: 3.5vh;"></div>
+        </div>
+    </div>
+
+    <!-- كروت الصلاة -->
+    <div class="middle-section">
+        <div class="prayer-grid" id="prayerGrid" style="display:grid; grid-template-columns: repeat(5, 1fr); gap: 1.5vw;">
+            <!-- توليد ديناميكي -->
+        </div>
+    </div>
+
+    <!-- القسم السفلي -->
+    <div class="bottom-section">
+        <div class="verse-section" id="verseBox">﴿ إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَوْقُوتًا ﴾</div>
+        <div class="ticker-wrapper">
+            <div class="ticker-content" id="hadithTicker">جاري تحميل الأحاديث النبوية...</div>
+        </div>
+    </div>
+</div>
+
+<!-- أزرار التحكم -->
+<div class="top-controls">
+    <div class="btn-circle" onclick="toggleSettings()"><i class="fas fa-cog"></i></div>
+    <div class="btn-circle" onclick="toggleFullscreen()"><i class="fas fa-expand"></i></div>
+    <div class="btn-circle" onclick="uploadVideo()"><i class="fas fa-video"></i></div>
+</div>
+
+<!-- لوحة الإعدادات -->
+<div id="settingsDrawer" class="settings-drawer">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+        <h2 style="color:var(--main-gold);">⚙️ إعدادات اللوحة الذكية</h2>
+        <i class="fas fa-times" onclick="toggleSettings()" style="font-size:30px; color:white;"></i>
+    </div>
+
+    <div class="setting-item">
+        <label>🕌 اسم المسجد</label>
+        <input type="text" id="mosqueNameInput" onchange="updateMosqueName(this.value)">
+    </div>
+
+    <div class="setting-item">
+        <label>🎨 تخصيص تيمات الصلوات (لكل صلاة ثيم خاص)</label>
+        <div id="themeManager"></div>
+    </div>
+
+    <div class="setting-item">
+        <label>🌍 المدينة (المغرب)</label>
+        <select id="citySelect" onchange="updateCity(this.value)"></select>
+    </div>
+
+    <div class="setting-item">
+        <label>🎬 إدارة الفيديو</label>
+        <button onclick="uploadVideo()" style="background:#1e4a1f; color:white; border:none; padding:10px; border-radius:8px; width:100%;"><i class="fas fa-upload"></i> رفع فيديو جديد</button>
+        <button onclick="clearVideo()" style="background:#4a1e1e; color:white; border:none; padding:10px; border-radius:8px; width:100%; margin-top:5px;"><i class="fas fa-trash"></i> حذف الفيديو</button>
+    </div>
+
+    <div class="setting-item">
+        <label>📜 الأحاديث والآيات</label>
+        <textarea id="hadithArea" rows="4" placeholder="كل حديث في سطر..."></textarea>
+        <button onclick="saveHadiths()" style="margin-top:5px; background:var(--main-gold); color:black; font-weight:bold;">حفظ</button>
+    </div>
+</div>
+
+<script>
+// --- [1] الحالة والبيانات (State) ---
+const state = {
+    mosqueName: "مسجد الفرقان",
+    city: "Nador",
+    prayerTimes: { Fajr: "05:10", Dhuhr: "13:20", Asr: "16:45", Maghrib: "19:30", Isha: "20:50" },
+    iqamaMinutes: { Fajr: 20, Dhuhr: 15, Asr: 15, Maghrib: 10, Isha: 15 },
+    themePerPrayer: { Fajr: "blue", Dhuhr: "amber", Asr: "gold", Maghrib: "rose", Isha: "purple" },
+    availableThemes: ["gold", "emerald", "blue", "purple", "red", "turquoise", "amber", "rose", "silver", "royal"],
+    bgOpacity: 0.2,
+    hadiths: [
+        "قال ﷺ: «من بنى لله مسجداً بنى الله له بيتاً في الجنة»",
+        "قال ﷺ: «صلاة الجماعة تفضل صلاة الفذ بسبع وعشرين درجة»",
+        "قال ﷺ: «بشر المشائين في الظلم إلى المساجد بالنور التام يوم القيامة»"
+    ],
+    verses: [
+        "﴿ وَأَقِيمُوا الصَّلَاةَ وَآتُوا الزَّكَاةَ وَارْكَعُوا مَعَ الرَّاكِعِينَ ﴾",
+        "﴿ إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَوْقُوتًا ﴾"
+    ]
+};
+
+// --- [2] نظام الفأرة الانسيابية (Smooth Cursor) ---
+const cursor = document.getElementById('customCursor');
+let mouse = { x: 0, y: 0 };
+let pos = { x: 0, y: 0 };
+const speed = 0.15; // سرعة الانسياب
+
+document.addEventListener('mousemove', e => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+    cursor.style.opacity = "1";
+});
+
+function animateCursor() {
+    pos.x += (mouse.x - pos.x) * speed;
+    pos.y += (mouse.y - pos.y) * speed;
+    cursor.style.left = pos.x + 'px';
+    cursor.style.top = pos.y + 'px';
+    requestAnimationFrame(animateCursor);
+}
+animateCursor();
+
+// تفاعل الفأرة مع العناصر
+document.querySelectorAll('button, .prayer-card, .btn-circle').forEach(el => {
+    el.addEventListener('mouseenter', () => cursor.classList.add('cursor-hover'));
+    el.addEventListener('mouseleave', () => cursor.classList.remove('cursor-hover'));
+});
+
+// --- [3] نظام الفيديو الدائم (IndexedDB) ---
+let db;
+const request = indexedDB.open("MosqueBoardDB", 1);
+request.onupgradeneeded = e => {
+    db = e.target.result;
+    db.createObjectStore("assets", { keyPath: "id" });
+};
+request.onsuccess = e => {
+    db = e.target.result;
+    loadPersistentVideo();
+};
+
+async function uploadVideo() {
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = 'video/*';
+    input.onchange = e => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = ev => {
+            const blob = new Blob([ev.target.result], { type: file.type });
+            db.transaction("assets", "readwrite").objectStore("assets").put({ id: "bgVideo", data: blob });
+            playVideoFromBlob(blob);
+        };
+        reader.readAsArrayBuffer(file);
+    };
+    input.click();
+}
+
+function loadPersistentVideo() {
+    db.transaction("assets").objectStore("assets").get("bgVideo").onsuccess = e => {
+        if(e.target.result) playVideoFromBlob(e.target.result.data);
+    };
+}
+
+function playVideoFromBlob(blob) {
+    const v = document.getElementById('bgVideo');
+    v.src = URL.createObjectURL(blob);
+    v.classList.add('active');
+    v.play();
+}
+
+function clearVideo() {
+    db.transaction("assets", "readwrite").objectStore("assets").delete("bgVideo");
+    location.reload();
+}
+
+// --- [4] إدارة الوقت والصلوات ---
+function updateClock() {
+    const now = new Date();
+    document.getElementById('liveClockMain').textContent = now.toLocaleTimeString('en-GB', { hour12: false });
+    document.getElementById('gregorianDate').textContent = now.toLocaleDateString('ar-MA', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    
+    // تحديث دائرة التقدم
+    const circle = document.getElementById('timerCircle');
+    const seconds = now.getSeconds();
+    const offset = 628 - (seconds / 60) * 628;
+    circle.style.strokeDashoffset = offset;
+}
+
+function renderPrayers() {
+    const grid = document.getElementById('prayerGrid');
+    const prayers = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
+    const names = { Fajr: "الفجر", Dhuhr: "الظهر", Asr: "العصر", Maghrib: "المغرب", Isha: "العشاء" };
+    
+    // تحديد الصلاة القادمة (منطق تقريبي)
+    const nextPrayer = "Maghrib"; // يجب ربطها بمنطق الوقت الحقيقي
+    
+    applyTheme(state.themePerPrayer[nextPrayer]);
+
+    grid.innerHTML = prayers.map(p => `
+        <div class="prayer-card ${p === nextPrayer ? 'next' : ''}">
+            <div class="prayer-name">${names[p]}</div>
+            <div class="prayer-time">${state.prayerTimes[p]}</div>
+            <div style="font-size:2.5vh; opacity:0.7; margin-top:1vh;">الإقامة: +${state.iqamaMinutes[p]}د</div>
+        </div>
+    `).join('');
+}
+
+function applyTheme(themeName) {
+    const body = document.getElementById('appBody');
+    state.availableThemes.forEach(t => body.classList.remove('theme-' + t));
+    body.classList.add('theme-' + themeName);
+}
+
+// --- [5] الإعدادات العامة ---
+function toggleSettings() {
+    document.getElementById('settingsDrawer').classList.toggle('open');
+}
+
+function updateMosqueName(val) {
+    state.mosqueName = val;
+    document.getElementById('mosqueNameDisplay').textContent = val;
+    localStorage.setItem('mosque_state', JSON.stringify(state));
+}
+
+function initThemeManager() {
+    const container = document.getElementById('themeManager');
+    const prayers = { Fajr: "الفجر", Dhuhr: "الظهر", Asr: "العصر", Maghrib: "المغرب", Isha: "العشاء" };
+    
+    container.innerHTML = Object.keys(prayers).map(p => `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span>${prayers[p]}</span>
+            <select onchange="updateTheme('${p}', this.value)" style="width:120px;">
+                ${state.availableThemes.map(t => `<option value="${t}" ${state.themePerPrayer[p] === t ? 'selected' : ''}>${t}</option>`).join('')}
+            </select>
+        </div>
+    `).join('');
+}
+
+function updateTheme(prayer, theme) {
+    state.themePerPrayer[prayer] = theme;
+    renderPrayers();
+    localStorage.setItem('mosque_state', JSON.stringify(state));
+}
+
+function enterApp() {
+    document.getElementById('licenseScreen').style.opacity = "0";
+    setTimeout(() => {
+        document.getElementById('licenseScreen').style.display = "none";
+    }, 500);
+}
+
+// تشغيل المحركات
+setInterval(updateClock, 1000);
+updateClock();
+renderPrayers();
+initThemeManager();
+
+// تحميل الإعدادات المحفوظة
+window.onload = () => {
+    const saved = localStorage.getItem('mosque_state');
+    if(saved) {
+        Object.assign(state, JSON.parse(saved));
+        document.getElementById('mosqueNameDisplay').textContent = state.mosqueName;
+        document.getElementById('mosqueNameInput').value = state.mosqueName;
+    }
+};
+
+</script>
+</body>
+</html>
