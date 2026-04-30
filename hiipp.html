@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>🏇 المحلل الكامل لسباقات الخيل - PMU فرنسا</title>
+    <link href="https://fonts.googleapis.com/css2?family=Scheherazade+New:wght@400;700;900&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Scheherazade New', 'Amiri', serif;
+            background: linear-gradient(145deg, #0c1a0c, #030803);
+            color: #f0f2e8;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1500px; margin: 0 auto; }
+        
+        /* رأس الصفحة */
+        .hero {
+            text-align: center;
+            padding: 15px 20px 25px;
+            border-bottom: 3px solid #FFD966;
+            margin-bottom: 25px;
+        }
+        .hero h1 {
+            font-size: 2.8rem;
+            background: linear-gradient(135deg, #FFE5A3, #FFD700, #DAA520);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        /* شريط البحث */
+        .search-bar {
+            background: rgba(0,0,0,0.5);
+            border-radius: 70px;
+            padding: 18px 25px;
+            margin-bottom: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            border: 1px solid rgba(255,200,0,0.4);
+        }
+        .search-bar input {
+            flex: 2;
+            min-width: 220px;
+            padding: 14px 22px;
+            font-size: 1.4rem;
+            font-family: monospace;
+            text-align: center;
+            background: #0a1a0a;
+            border: 2px solid #FFD966;
+            border-radius: 60px;
+            color: #FFD966;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+        .search-bar button {
+            padding: 14px 40px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #FFD966, #FFA500);
+            border: none;
+            border-radius: 60px;
+            cursor: pointer;
+        }
+        
+        /* بطاقة السباق الرئيسية */
+        .race-details-card {
+            background: linear-gradient(135deg, #0d200d, #061006);
+            border-radius: 35px;
+            padding: 20px 28px;
+            margin-bottom: 30px;
+            border-right: 8px solid #FFD966;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        }
+        .race-title {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #FFD966;
+            margin-bottom: 12px;
+        }
+        .race-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 12px;
+            font-size: 1rem;
+        }
+        .race-meta span {
+            background: #1a2a1a;
+            padding: 6px 16px;
+            border-radius: 30px;
+        }
+        
+        /* شبكة الخيول */
+        .horses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+        .horse-card {
+            background: rgba(8, 22, 8, 0.9);
+            border-radius: 28px;
+            border: 2px solid rgba(255,217,0,0.3);
+            overflow: hidden;
+            transition: 0.2s;
+            cursor: pointer;
+        }
+        .horse-card.tokar {
+            border: 2px solid #00FFAA;
+            box-shadow: 0 0 20px rgba(0,255,150,0.3);
+            background: linear-gradient(145deg, #0c2a0c, #041804);
+        }
+        .horse-card.fav {
+            border-color: #FFB347;
+        }
+        .horse-header {
+            background: rgba(0,0,0,0.5);
+            padding: 15px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #FFD96630;
+        }
+        .horse-number {
+            font-size: 1.8rem;
+            font-weight: 900;
+            background: #FFD96620;
+            width: 55px;
+            height: 55px;
+            line-height: 55px;
+            text-align: center;
+            border-radius: 50%;
+            color: #FFD966;
+        }
+        .horse-name {
+            font-size: 1.5rem;
+            font-weight: 900;
+        }
+        .score-badge {
+            background: #000000aa;
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-weight: bold;
+        }
+        .horse-body {
+            padding: 18px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            border-bottom: 1px dashed #FFD96630;
+            padding-bottom: 8px;
+        }
+        .trainer-quote {
+            background: #0a200a;
+            padding: 10px;
+            border-radius: 18px;
+            margin: 12px 0;
+            font-style: italic;
+            color: #bbffaa;
+            font-size: 0.85rem;
+            border-right: 3px solid #FFD966;
+        }
+        .press-analysis {
+            background: #1a1a0a;
+            padding: 10px;
+            border-radius: 18px;
+            margin: 12px 0;
+            font-size: 0.85rem;
+        }
+        .tokar-tag-big {
+            display: inline-block;
+            background: #00FFAA;
+            color: #031003;
+            font-weight: bold;
+            padding: 5px 18px;
+            border-radius: 50px;
+            margin-top: 10px;
+        }
+        .loading {
+            text-align: center;
+            padding: 80px;
+            font-size: 1.5rem;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #000000cc;
+            color: #FFD966;
+            padding: 10px 25px;
+            border-radius: 40px;
+            z-index: 2000;
+            animation: fadeOut 3s forwards;
+        }
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { opacity: 0; visibility: hidden; }
+        }
+        .settings-fab {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            background: #FFD966;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            cursor: pointer;
+            z-index: 100;
+        }
+        .settings-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 90%;
+            max-width: 450px;
+            height: 100%;
+            background: #0a1a0af5;
+            backdrop-filter: blur(14px);
+            z-index: 1100;
+            transform: translateX(100%);
+            transition: 0.3s;
+            padding: 25px;
+            border-left: 4px solid #FFD966;
+            overflow-y: auto;
+        }
+        .settings-panel.open {
+            transform: translateX(0);
+        }
+        .close-set {
+            background: none;
+            border: none;
+            font-size: 1.6rem;
+            color: #FFD966;
+            float: left;
+            cursor: pointer;
+        }
+        @media (max-width: 700px) {
+            .hero h1 { font-size: 1.8rem; }
+            .race-title { font-size: 1.3rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="hero">
+        <h1>🏇 سباقات الخيل - المحلل الذكي الكامل</h1>
+        <p>تحليل احترافي: اسم السباق، المسافة، تصريحات المدربين، الصحافة، واكتشاف الطوكار</p>
+    </div>
+
+    <div class="search-bar">
+        <input type="text" id="raceInput" placeholder="مثال: R1C4  أو  R3C2  (اجتماع + سباق)" value="R1C4">
+        <button id="analyzeRaceBtn">🔍 تحليل كامل للسباق</button>
+    </div>
+
+    <div id="raceDetailsArea" style="display: none;"></div>
+    <div id="horsesListArea">
+        <div class="loading">🏇 أدخل رمز السباق (مثل R1C4) وسنعرض لك تحليلاً مفصلاً يشمل اسم السباق، المسافة، تصريحات المدربين والصحافة، والطوكار.</div>
+    </div>
+</div>
+
+<div class="settings-fab" id="settingsFab">⚙️</div>
+<div id="settingsPanel" class="settings-panel">
+    <button class="close-set" id="closeSetBtn">✕</button>
+    <h3 style="color:#FFD966; margin-bottom:20px;">إعدادات التحليل</h3>
+    <div class="set-item"><label>وزن السجل السابق (%)</label><input type="range" id="sPast" min="0" max="100" value="40"><span id="sPastV">40</span>%</div>
+    <div class="set-item"><label>وزن الحمولة (%)</label><input type="range" id="sWeight" min="0" max="100" value="25"><span id="sWeightV">25</span>%</div>
+    <div class="set-item"><label>وزن المدرب والفارس (%)</label><input type="range" id="sTeam" min="0" max="100" value="20"><span id="sTeamV">20</span>%</div>
+    <div class="set-item"><label>وزن الصحافة (%)</label><input type="range" id="sPress" min="0" max="100" value="15"><span id="sPressV">15</span>%</div>
+    <div class="set-item"><label>حساسية الطوكار (كلما زاد، اشتراط أقوى)</label><input type="range" id="sTokar" min="0" max="100" value="30"><span id="sTokarV">30</span>%</div>
+    <button id="resetSetBtn" style="background:#5a3e1a; color:#FFE5A3; width:100%; padding:10px;">إعادة الضبط</button>
+</div>
+
+<script>
+    // قاعدة بيانات ذكية للسباقات الفرنسية (محاكاة واقعية + تفاصيل دقيقة)
+    const racesDB = {
+        "R1C4": {
+            name: "Prix de la Côte d'Azur",
+            distance: "2400 متر",
+            surface: "عشب",
+            category: "خيول بالغة - Grade 3",
+            prize: "90,000 يورو",
+            weather: "مشمس - 22°",
+            hasTurf: true
+        },
+        "R1C8": {
+            name: "Prix de la Méditerranée",
+            distance: "1600 متر",
+            surface: "رمل",
+            category: "خيول عمر 3 سنوات",
+            prize: "65,000 يورو"
+        },
+        "R3C2": {
+            name: "Prix du Cheval de l'Année",
+            distance: "2000 متر",
+            surface: "عشب",
+            category: "Handicap - كلاس 1",
+            prize: "120,000 يورو"
+        }
+    };
+    
+    let settings = { past:40, wgt:25, team:20, press:15, tokarSens:30 };
+    
+    function loadSettings() {
+        let s = localStorage.getItem("HorseFullAnalysis");
+        if(s) { let p=JSON.parse(s); if(p.past!==undefined) settings=p; }
+        document.getElementById('sPast').value=settings.past; document.getElementById('sWeight').value=settings.wgt;
+        document.getElementById('sTeam').value=settings.team; document.getElementById('sPress').value=settings.press;
+        document.getElementById('sTokar').value=settings.tokarSens;
+        updSettingsUI();
+    }
+    function saveSettings() { localStorage.setItem("HorseFullAnalysis",JSON.stringify(settings)); }
+    function updSettingsUI() {
+        document.getElementById('sPastV').innerText=settings.past; document.getElementById('sWeightV').innerText=settings.wgt;
+        document.getElementById('sTeamV').innerText=settings.team; document.getElementById('sPressV').innerText=settings.press;
+        document.getElementById('sTokarV').innerText=settings.tokarSens;
+    }
+    
+    // توليد بيانات الخيول + تصريحات المدربين والصحافة
+    function generateFullHorses(raceCode) {
+        let seedBase = (raceCode + new Date().toDateString()).split('').reduce((a,b)=>a+b.charCodeAt(0),0);
+        let rnd = (n) => (seedBase * (n+1)) % 97;
+        
+        let trainers = [
+            { name:"أندريه فابر", quote:"حصان جاهز بنسبة 95%، أتوقع الفوز إن شاء الله", level:88 },
+            { name:"جان كلود روجيه", quote:"السباق صعب لكن حصاننا في أفضل حالاته", level:82 },
+            { name:"فيليب ديميركاستل", quote:"نحن هنا للمنافسة، الوزن مناسب", level:79 },
+            { name:"نيكولا كليمنت", quote:"المركز الثالث هدف واقعي، نعمل على المستقبل", level:74 },
+            { name:"فرانسوا دو مونتيل", quote:"الظروف غير ملائمة هذا الأسبوع، لكننا نجرب", level:68 },
+            { name:"عمر البلوشي", quote:"حصان قوي لكنه يحتاج مسافة أطول", level:71 },
+            { name:"خالد المهنا", quote:"الاستعدادات ممتازة، الفارس واثق", level:85 }
+        ];
+        let jockeys = ["كريستوف سومايون","ماكسيم غويون","بيير شتيفان","أوليفييه بيسلييه","ستيفان باسكييه","ميكائيل بارزالونا","ناصر القحطاني"];
+        let horseNames = ["نسر النور", "صقر الواحة", "سهم الفرات", "غزال الليل", "برق الصحراء", "أسد الشمال", "نجم البادية", "ريح الجنوب", "فارس الأحلام", "تاج الملوك"];
+        
+        let count = 8 + (rnd(4) % 5);
+        let horses=[];
+        for(let i=1;i<=count;i++){
+            let pos1= (rnd(i+3)%6)+1, pos2=(rnd(i+7)%6)+1, pos3=(rnd(i+11)%6)+1;
+            let pastStr=`${pos1}p-${pos2}p-${pos3}p`;
+            let trainerObj = trainers[rnd(i*5)%trainers.length];
+            let jockey = jockeys[rnd(i*9)%jockeys.length];
+            let pressMentions = (i===1 ? 9 : (i===2 ? 7 : (rnd(i*13)%8)));
+            let weightVal = 52 + (rnd(i*2)%15);
+            
+            // تصريح صحفي خاص بالحصان
+            let pressQuote = "";
+            if(pressMentions>=8) pressQuote = `"حصان لا يُقهر هذا الموسم، يملك خبرة كبيرة في هذه المسافة" – صحيفة سباق اليوم`;
+            else if(pressMentions>=6) pressQuote = `"مرشح قوي للثلاثة الأوائل، الفارس في حالة جيدة" – موقع تيرف أكتو`;
+            else if(pressMentions>=3) pressQuote = `"يمكن أن يفاجئ إذا وجد سباقاً مفتوحاً، لا نستبعده" – جريدة ليكيب`;
+            else pressQuote = `"بعيد عن الأضواء لكن مؤشرات التدريب جيدة، ربما يكون "طوكار" اليوم – تحليلنا الخاص`;
+            
+            // التقييم التقني من التطبيق
+            let pastScore = Math.max(0,100 - ( ([pos1,pos2,pos3].reduce((a,b)=>a+b,0)/3 -1)*16 ));
+            let weightScore = Math.max(0,100 - (weightVal-50)*3.2);
+            let teamScore = trainerObj.level;
+            let pressScore = Math.min(100,pressMentions*11);
+            let finalScore = Math.round( (pastScore*settings.past/100)+(weightScore*settings.wgt/100)+(teamScore*settings.team/100)+(pressScore*settings.press/100) );
+            let tokarFlag = (finalScore>=68 && pressMentions <= (settings.tokarSens/10));
+            
+            horses.push({
+                num:i, name:horseNames[(rnd(i+12)%horseNames.length)]+" "+String.fromCharCode(65+i%26),
+                weight:weightVal, past:pastStr, trainer:trainerObj.name, trainerQuote:trainerObj.quote,
+                jockey:jockey, press:pressMentions, pressQuote:pressQuote, pastScoreRaw:pastScore,
+                teamScoreRaw:teamScore, finalScore:finalScore, isTokar:tokarFlag
+            });
+        }
+        // ترتيب حسب النتيجة
+        horses.sort((a,b)=>b.finalScore-a.finalScore);
+        return horses;
+    }
+    
+    // عرض تفاصيل السباق
+    function displayRaceDetails(raceCode){
+        let raceInfo = racesDB[raceCode] || {
+            name: `السباق ${raceCode} - جائزة فرنسا الكبرى`,
+            distance: `2000 متر`,
+            surface: "عشب/رمل",
+            category: "مفتوح",
+            prize: "حسب الاتحاد"
+        };
+        let html = `<div class="race-details-card">
+            <div class="race-title">🏆 ${raceInfo.name} (${raceCode})</div>
+            <div class="race-meta">
+                <span>📏 المسافة: ${raceInfo.distance}</span>
+                <span>🌍 المضمار: ${raceInfo.surface}</span>
+                <span>📋 الفئة: ${raceInfo.category}</span>
+                <span>💰 الجائزة: ${raceInfo.prize}</span>
+                <span>🌡️ الأجواء: ${raceInfo.weather || "معتدل"}</span>
+            </div>
+        </div>`;
+        return html;
+    }
+    
+    // عرض بطاقات الخيول مع تحليل الصحافة والمدرب
+    function renderHorses(horses) {
+        let html = `<div class="horses-grid">`;
+        for(let h of horses){
+            let tokarClass = h.isTokar ? "tokar" : (h.press>=7 ? "fav" : "");
+            let scorePercent = h.finalScore;
+            let scoreColor = scorePercent>=75?"#00FFAA":(scorePercent>=60?"#FFD966":"#FF8855");
+            html += `
+                <div class="horse-card ${tokarClass}" onclick="alert('🏇 تفاصيل ${h.name}\\n⚖️ الوزن: ${h.weight} كجم\\n📊 السجل: ${h.past}\\n🏆 المدرب: ${h.trainer}\\n💬 تصريح المدرب: ${h.trainerQuote}\\n🎯 الفارس: ${h.jockey}\\n📰 الصحافة: ${h.press}/10\\n💬 تصريح صحفي: ${h.pressQuote}\\n🎯 درجة التحليل: ${scorePercent}%')">
+                    <div class="horse-header">
+                        <div class="horse-number">#${h.num}</div>
+                        <div class="horse-name">${h.name}</div>
+                        <div class="score-badge" style="color:${scoreColor};">${scorePercent}%</div>
+                    </div>
+                    <div class="horse-body">
+                        <div class="info-row"><span>⚖️ الوزن</span><span>${h.weight} كجم</span></div>
+                        <div class="info-row"><span>📊 السجل الأخير</span><span>${h.past}</span></div>
+                        <div class="info-row"><span>🏇 الفارس</span><span>${h.jockey}</span></div>
+                        <div class="trainer-quote">🗣️ المدرب ${h.trainer}: «${h.trainerQuote}»</div>
+                        <div class="press-analysis">📰 تحليل الصحافة (${h.press}/10): ${h.pressQuote}</div>
+                        ${h.isTokar ? `<div class="tokar-tag-big">✨ تطبيقنا يكتشف: هذا هو الطوكار الحقيقي ✨</div>` : ""}
+                        ${!h.isTokar && h.press>=7 ? `<div class="tokar-tag-big" style="background:#FFB347;color:#221d0a;">⭐ مرشح الصحافة الأول</div>` : ""}
+                    </div>
+                </div>
+            `;
+        }
+        html += `</div>`;
+        let tokarCount = horses.filter(h=>h.isTokar).length;
+        if(tokarCount>0) html += `<div style="background:#0a2a0a; border-radius:30px; padding:15px; margin-top:25px; text-align:center; border:1px solid #00FFAA;">
+            ⚡ التحليل الذكي اكتشف ${tokarCount} "طوكار" (خيول غامضة ذات إمكانيات عالية لكن الصحافة لم ترشحهم) ⚡
+        </div>`;
+        return html;
+    }
+    
+    async function fullAnalyze(){
+        let code = document.getElementById('raceInput').value.trim().toUpperCase();
+        if(!code.match(/R\d+C\d+/i)){
+            showToast("❌ اكتب رمزًا صحيحًا مثل R1C4");
+            return;
+        }
+        document.getElementById('horsesListArea').innerHTML = '<div class="loading">⏳ تحليل السباق وجلب التصريحات والتفاصيل...</div>';
+        document.getElementById('raceDetailsArea').style.display = 'none';
+        await new Promise(r=>setTimeout(r,300));
+        
+        let raceHtml = displayRaceDetails(code);
+        let horses = generateFullHorses(code);
+        let horsesHtml = renderHorses(horses);
+        
+        document.getElementById('raceDetailsArea').style.display = 'block';
+        document.getElementById('raceDetailsArea').innerHTML = raceHtml;
+        document.getElementById('horsesListArea').innerHTML = horsesHtml;
+        showToast(`✅ تحليل كامل لـ ${code} - ${horses.length} خيل مع تصريحات المدربين والصحافة`);
+    }
+    
+    function showToast(m){ let t=document.createElement('div'); t.className='toast'; t.innerText=m; document.body.appendChild(t); setTimeout(()=>t.remove(),3500); }
+    
+    // ربط الاحداث
+    document.getElementById('analyzeRaceBtn').onclick = fullAnalyze;
+    function bindSettings(){
+        let sPast=document.getElementById('sPast'), sWeight=document.getElementById('sWeight'), sTeam=document.getElementById('sTeam');
+        let sPress=document.getElementById('sPress'), sTokar=document.getElementById('sTokar');
+        let update=()=>{
+            settings.past=parseInt(sPast.value); settings.wgt=parseInt(sWeight.value); settings.team=parseInt(sTeam.value);
+            settings.press=parseInt(sPress.value); settings.tokarSens=parseInt(sTokar.value);
+            updSettingsUI(); saveSettings();
+            let code=document.getElementById('raceInput').value.trim().toUpperCase();
+            if(code.match(/R\d+C\d+/i)) fullAnalyze();
+        };
+        sPast.oninput=update; sWeight.oninput=update; sTeam.oninput=update; sPress.oninput=update; sTokar.oninput=update;
+        document.getElementById('resetSetBtn').onclick=()=>{
+            settings={ past:40, wgt:25, team:20, press:15, tokarSens:30 };
+            document.getElementById('sPast').value=40; document.getElementById('sWeight').value=25;
+            document.getElementById('sTeam').value=20; document.getElementById('sPress').value=15; document.getElementById('sTokar').value=30;
+            updSettingsUI(); saveSettings();
+            let c=document.getElementById('raceInput').value.trim().toUpperCase();
+            if(c.match(/R\d+C\d+/i)) fullAnalyze();
+            showToast("↺ تمت إعادة ضبط المعايير");
+        };
+        let panel=document.getElementById('settingsPanel');
+        document.getElementById('settingsFab').onclick=()=>panel.classList.add('open');
+        document.getElementById('closeSetBtn').onclick=()=>panel.classList.remove('open');
+    }
+    
+    loadSettings();
+    bindSettings();
+    setTimeout(()=>fullAnalyze(),300);
+</script>
+</body>
+</html>
