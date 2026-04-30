@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>🏇 Turf Expert Global - 7 دول</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#050a05;font-family:'Cairo',sans-serif;color:#e8d5a0;padding:10px;}
+.container{max-width:1800px;margin:0 auto;}
+.header{background:linear-gradient(135deg,#C8102E,#8B0000);border:3px solid #FFD700;border-radius:20px;padding:25px;text-align:center;margin-bottom:20px;}
+.header h1{font-size:2.5rem;font-weight:900;color:#FFD700;}
+.flags{font-size:2rem;margin:10px 0;}
+.control-panel{background:#0f1f0f;border:3px solid #C8102E;border-radius:15px;padding:20px;margin-bottom:20px;}
+.country-select{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:15px;}
+.country-btn{background:#1a2a1a;border:2px solid #C8102E;border-radius:10px;padding:12px;color:#C8102E;font-weight:700;cursor:pointer;transition:0.2s;}
+.country-btn.active{background:#C8102E;color:#FFD700;border-color:#FFD700;}
+.country-btn:hover{transform:scale(1.05);}
+.input-zone{display:flex;gap:10px;margin-bottom:15px;}
+.input-zone input{flex:1;padding:18px;font-size:1.8rem;font-family:monospace;text-align:center;background:#050a05;border:3px solid #C8102E;border-radius:12px;color:#C8102E;font-weight:900;}
+.input-zone button{padding:18px 40px;font-size:1.3rem;font-weight:900;background:#C8102E;border:none;border-radius:12px;color:#fff;cursor:pointer;}
+.btn-learn{padding:12px;font-size:1rem;font-weight:700;background:#1a3a1a;border:2px solid #FFD700;border-radius:10px;color:#FFD700;cursor:pointer;width:100%;}
+.quinte-alert{background:linear-gradient(135deg,#C8102E,#8B0000);border:4px solid #FFD700;border-radius:15px;padding:25px;margin-bottom:20px;text-align:center;display:none;}
+.quinte-alert h2{font-size:2.5rem;color:#FFD700;margin-bottom:15px;}
+.quinte-alert.picks{font-size:3rem;font-weight:900;color:#fff;letter-spacing:6px;margin:15px 0;}
+.ai-brain{background:linear-gradient(135deg,#2d0d0d,#1f0a0a);border:3px solid #C8102E;border-radius:15px;padding:25px;margin-bottom:20px;}
+.ai-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:15px;}
+.ai-card{background:#050a05;border:2px solid #C8102E;border-radius:12px;padding:15px;}
+.ai-card h3{color:#FFD700;font-size:1.3rem;margin-bottom:10px;text-align:center;}
+.ai-card.big-text{font-size:2rem;font-weight:900;color:#C8102E;text-align:center;margin:10px 0;}
+.table-wrap{background:#0f1f0f;border:3px solid #C8102E;border-radius:15px;overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:0.9rem;}
+thead{background:linear-gradient(135deg,#C8102E,#8B0000);color:#fff;}
+th{padding:15px 8px;font-weight:900;}
+tbody tr{border-bottom:2px solid #1a2a1a;}
+td{padding:12px 6px;text-align:center;}
+.num-circle{background:#C8102E;color:#fff;width:35px;height:35px;line-height:35px;border-radius:50%;display:inline-block;font-weight:900;}
+.tokar-row{background:linear-gradient(90deg,#3d0d0d,#2d0a0a)!important;border-right:5px solid #00FF88;}
+.odds-box{background:#00AA00;color:#fff;padding:4px 8px;border-radius:6px;font-weight:900;display:inline-block;}
+.loading{text-align:center;padding:80px 20px;font-size:1.8rem;color:#C8102E;}
+.error{background:#4a1a1a;border:3px solid #FF6B6B;border-radius:15px;padding:25px;text-align:center;color:#FF6B6B;}
+.learned{background:#0d1f0d;border:2px solid #00FF88;border-radius:10px;padding:15px;margin-bottom:15px;text-align:center;color:#00FF88;}
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🏇 TURF EXPERT GLOBAL</h1>
+        <div class="flags">🇲🇦 🇫🇷 🇬🇧 🇺🇸 🇦🇷 🇪🇸 🇧🇪</div>
+        <p id="date">Jeudi 30 Avril 2026</p>
+    </div>
+
+    <div class="control-panel">
+        <div class="country-select" id="countries"></div>
+        <div class="input-zone">
+            <input type="text" id="raceInput" placeholder="R1C8" value="R1C8">
+            <button onclick="fetchRace()">⚡ جلب السباق</button>
+        </div>
+        <button class="btn-learn" onclick="showLearned()">🧠 شنو تعلم التطبيق؟</button>
+    </div>
+
+    <div id="learnedBox"></div>
+    <div id="quinteAlert" class="quinte-alert"></div>
+    <div id="outputZone">
+        <div class="loading">🏇 اختار البلد وكتب كود السباق</div>
+    </div>
+</div>
+
+<script>
+const BACKEND_URL = 'https://TURF-EXPERT-BACKEND.onrender.com'; // بدلها من بعد
+const COUNTRIES = [
+    {code: 'MA', name: 'المغرب', flag: '🇲🇦'},
+    {code: 'FR', name: 'فرنسا', flag: '🇫🇷'},
+    {code: 'UK', name: 'انجلترا', flag: '🇬🇧'},
+    {code: 'US', name: 'أمريكا', flag: '🇺🇸'},
+    {code: 'AR', name: 'الأرجنتين', flag: '🇦🇷'},
+    {code: 'ES', name: 'اسبانيا', flag: '🇪🇸'},
+    {code: 'BE', name: 'بلجيكا', flag: '🇧🇪'}
+];
+
+let selectedCountry = 'MA';
+let today = new Date().toLocaleDateString('fr-FR', {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'});
+document.getElementById('date').textContent = today;
+
+function renderCountries() {
+    const div = document.getElementById('countries');
+    div.innerHTML = COUNTRIES.map(c => 
+        `<button class="country-btn ${c.code===selectedCountry?'active':''}" onclick="selectCountry('${c.code}')">
+            ${c.flag} ${c.name}
+        </button>`
+    ).join('');
+}
+
+function selectCountry(code) {
+    selectedCountry = code;
+    renderCountries();
+}
+
+async function fetchRace() {
+    const code = document.getElementById('raceInput').value.trim().toUpperCase();
+    const out = document.getElementById('outputZone');
+    const alert = document.getElementById('quinteAlert');
+
+    if(!/^R\d+C\d+$/i.test(code)) {
+        out.innerHTML = `<div class="error">❌ كود خاطئ. استخدم: R1C8</div>`;
+        return;
+    }
+
+    out.innerHTML = `<div class="loading">⏳ جاري جلب ${code} من ${COUNTRIES.find(c=>c.code===selectedCountry).name}...</div>`;
+    alert.style.display = 'none';
+
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/race/${selectedCountry}/${code}`);
+        if(!response.ok) throw new Error('السباق ما كاينش');
+        const data = await response.json();
+        renderRace(data, code);
+    } catch(err) {
+        out.innerHTML = `<div class="error">❌ السباق ${code} ما كاينش فـ ${COUNTRIES.find(c=>c.code===selectedCountry).name} اليوم<br>أو السيرفر طافي</div>`;
+    }
+}
+
+function renderRace(data, code) {
+    const out = document.getElementById('outputZone');
+    const alert = document.getElementById('quinteAlert');
+    const horses = data.horses;
+    const isQuinte = data.isQuinte || horses.length >= 16;
+
+    if(isQuinte) {
+        alert.style.display = 'block';
+        alert.innerHTML = `
+            <h2>👑 QUINTÉ+ ${data.country} 👑</h2>
+            <div class="picks">${data.prediction.join(' - ')}</div>
+            <div style="font-size:1.3rem;color:#fff;margin-top:10px;">
+                الثقة: ${data.confidence}/10 | ${data.raceName}
+            </div>
+        `;
+    }
+
+    let html = `
+        <div class="ai-brain">
+            <h2>🧠 تحليل ${data.countryName} - ${code}</h2>
+            <div class="ai-grid">
+                <div class="ai-card">
+                    <h3>🎯 نوع الرهان</h3>
+                    <div class="big-text">${isQuinte?'QUINTÉ+':data.betType.toUpperCase()}</div>
+                    <div style="text-align:center;font-size:0.9rem;">${horses.length} حصان</div>
+                </div>
+                <div class="ai-card">
+                    <h3>💰 التخمين</h3>
+                    <div class="big-text">${data.prediction.join(' - ')}</div>
+                    <div style="text-align:center;font-size:0.9rem;">الثقة: ${data.confidence}/10</div>
+                </div>
+                <div class="ai-card">
+                    <h3>📊 الطوكارات</h3>
+                    <div class="big-text">${data.tokars.length}</div>
+                    <div style="text-align:center;font-size:0.9rem;">${data.tokars.length>0?'⚠️ مفاجآت ممكنة':'سباق عادي'}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>#</th><th>الحصان</th><th>الفارس</th><th>المدرب</th><th>عم/ج</th><th>وزن</th><th>الكوت</th><th>السجل</th></tr>
+                </thead>
+                <tbody>
+    `;
+
+    horses.forEach(h => {
+        const isTokar = h.odds > 15;
+        const isTopPick = data.prediction.includes(h.num);
+        html += `
+            <tr class="${isTokar?'tokar-row':''}" style="${isTopPick?'background:#3d2d0d!important;':''}">
+                <td><span class="num-circle">${h.num}</span></td>
+                <td style="font-weight:900;text-align:right;">${h.name} ${isTopPick?'⭐':''}</td>
+                <td>${h.jockey}</td>
+                <td>${h.trainer}</td>
+                <td>${h.age}${h.sex}</td>
+                <td>${h.weight}kg</td>
+                <td><span class="odds-box">${h.odds}</span></td>
+                <td style="font-family:monospace;font-size:0.8rem;">${h.past}</td>
+            </tr>
+        `;
+    });
+
+    html += `</tbody></table></div>`;
+    out.innerHTML = html;
+}
+
+async function showLearned() {
+    const box = document.getElementById('learnedBox');
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/stats`);
+        const data = await response.json();
+        box.innerHTML = `<div class="learned">
+            🧠 التطبيق تعلم من ${data.totalRaces} سباق<br>
+            🇲🇦 ${data.countries.MA} | 🇫🇷 ${data.countries.FR} | 🇬🇧 ${data.countries.UK} | 🇺🇸 ${data.countries.US}<br>
+            آخر تحديث: ${data.lastUpdate}
+        </div>`;
+    } catch {
+        box.innerHTML = `<div class="error">❌ السيرفر طافي</div>`;
+    }
+}
+
+renderCountries();
+</script>
+</body>
+</html>
