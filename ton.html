@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>🏇 Turf Expert AI - 7 دول</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#050a05;font-family:'Cairo',sans-serif;color:#e8d5a0;padding:10px;}
+.container{max-width:1800px;margin:0 auto;}
+.header{background:linear-gradient(135deg,#C8102E,#8B0000);border:3px solid #FFD700;border-radius:20px;padding:25px;text-align:center;margin-bottom:20px;}
+.header h1{font-size:2.5rem;font-weight:900;color:#FFD700;}
+.flags{font-size:2rem;margin:10px 0;}
+.control-panel{background:#0f1f0f;border:3px solid #C8102E;border-radius:15px;padding:20px;margin-bottom:20px;}
+.country-select{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:15px;}
+.country-btn{background:#1a2a1a;border:2px solid #C8102E;border-radius:10px;padding:12px;color:#C8102E;font-weight:700;cursor:pointer;transition:0.2s;}
+.country-btn.active{background:#C8102E;color:#FFD700;border-color:#FFD700;transform:scale(1.05);}
+.input-row{display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap;}
+.input-row input{flex:1;min-width:200px;padding:15px;font-size:1.3rem;font-family:monospace;text-align:center;background:#050a05;border:3px solid #C8102E;border-radius:12px;color:#C8102E;font-weight:900;}
+.input-row input[type="date"]{font-size:1.1rem;color-scheme:dark;}
+.input-row button{padding:15px 30px;font-size:1.2rem;font-weight:900;background:#C8102E;border:none;border-radius:12px;color:#fff;cursor:pointer;}
+.race-list{display:grid;gap:12px;margin-bottom:20px;}
+.race-card{background:#0f1f0f;border:2px solid #C8102E;border-radius:15px;padding:15px;display:flex;align-items:center;gap:15px;cursor:pointer;transition:0.2s;}
+.race-card:hover{border-color:#FFD700;transform:scale(1.02);}
+.race-card.quinte{background:linear-gradient(135deg,#2d0d0d,#1f0a0a);border:3px solid #FFD700;}
+.race-num{background:#C8102E;color:#fff;width:70px;height:70px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900;font-size:1.5rem;}
+.race-num.quinte{background:#FFD700;color:#8B0000;}
+.race-info{flex:1;}
+.race-info h3{color:#FFD700;font-size:1.3rem;margin-bottom:5px;}
+.race-info p{color:#e8d5a0;font-size:0.9rem;}
+.race-tags{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;}
+.tag{padding:3px 8px;border-radius:5px;font-size:0.8rem;font-weight:700;}
+.tag.quinte{background:#FFD700;color:#8B0000;}
+.tag.tierce{background:#00AA00;color:#fff;}
+.tag.quarte{background:#0088FF;color:#fff;}
+.loading{text-align:center;padding:80px 20px;font-size:1.8rem;color:#C8102E;}
+.error{background:#4a1a1a;border:3px solid #FF6B6B;border-radius:15px;padding:25px;text-align:center;color:#FF6B6B;}
+.ai-brain{background:linear-gradient(135deg,#2d0d0d,#1f0a0a);border:3px solid #C8102E;border-radius:15px;padding:25px;margin-bottom:20px;}
+.ai-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:15px;}
+.ai-card{background:#050a05;border:2px solid #C8102E;border-radius:12px;padding:15px;}
+.ai-card h3{color:#FFD700;font-size:1.3rem;margin-bottom:10px;text-align:center;}
+.ai-card .big-text{font-size:2rem;font-weight:900;color:#C8102E;text-align:center;margin:10px 0;}
+.horse-detail{background:#0f1f0f;border:2px solid #C8102E;border-radius:15px;margin-bottom:15px;overflow:hidden;}
+.horse-header{background:#1a2a1a;padding:15px;display:flex;align-items:center;gap:15px;border-bottom:2px solid #C8102E;}
+.horse-num-big{background:#C8102E;color:#fff;width:60px;height:60px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:2rem;}
+.horse-name{flex:1;}
+.horse-name h3{color:#FFD700;font-size:1.5rem;margin-bottom:5px;}
+.horse-name p{color:#e8d5a0;font-size:0.9rem;}
+.ai-score{background:#FFD700;color:#8B0000;padding:10px 20px;border-radius:10px;font-weight:900;font-size:1.3rem;}
+.horse-body{padding:20px;}
+.analysis-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:15px;}
+.analysis-item{background:#050a05;padding:10px;border-radius:8px;font-size:0.9rem;border-right:3px solid #C8102E;}
+.press-comment{background:#1a1a0a;border:2px solid #FFD700;border-radius:10px;padding:15px;margin-top:10px;font-style:italic;}
+.tokar-card{border:3px solid #00FF88!important;background:linear-gradient(135deg,#0d2d0d,#0a1f0a)!important;}
+.favorite-card{border:3px solid #FFD700!important;background:linear-gradient(135deg,#2d2d0d,#1f1f0a)!important;}
+.chat-box{background:#0f1f0f;border:3px solid #C8102E;border-radius:15px;padding:20px;margin-top:20px;}
+.chat-box h3{color:#FFD700;margin-bottom:15px;text-align:center;}
+.chat-input{display:flex;gap:10px;}
+.chat-input input{flex:1;padding:15px;background:#050a05;border:2px solid #C8102E;border-radius:10px;color:#e8d5a0;font-size:1rem;}
+.chat-input button{padding:15px 25px;background:#C8102E;border:none;border-radius:10px;color:#fff;font-weight:700;cursor:pointer;}
+.chat-messages{max-height:400px;overflow-y:auto;margin-top:15px;}
+.chat-msg{margin-bottom:15px;padding:12px;border-radius:10px;}
+.chat-msg.user{background:#1a2a1a;border-right:4px solid #C8102E;text-align:left;}
+.chat-msg.ai{background:#2d1a1a;border-right:4px solid #FFD700;text-align:right;}
+.table-wrap{background:#0f1f0f;border:3px solid #C8102E;border-radius:15px;overflow-x:auto;margin-bottom:20px;}
+table{width:100%;border-collapse:collapse;font-size:0.9rem;}
+thead{background:linear-gradient(135deg,#C8102E,#8B0000);color:#fff;}
+th{padding:15px 8px;font-weight:900;}
+tbody tr{border-bottom:2px solid #1a2a1a;}
+td{padding:12px 6px;text-align:center;}
+.num-circle{background:#C8102E;color:#fff;width:35px;height:35px;line-height:35px;border-radius:50%;display:inline-block;font-weight:900;}
+.odds-box{background:#00AA00;color:#fff;padding:4px 8px;border-radius:6px;font-weight:900;display:inline-block;}
+.back-btn{padding:12px 25px;background:#1a2a1a;border:2px solid #FFD700;color:#FFD700;border-radius:10px;cursor:pointer;margin-bottom:15px;font-weight:700;}
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🏇 TURF EXPERT AI</h1>
+        <div class="flags">🇲🇦 🇫🇷 🇬🇧 🇺🇸 🇦🇷 🇪🇸 🇧🇪</div>
+        <p id="todayDate">Jeudi 30 Avril 2026</p>
+    </div>
+
+    <div class="control-panel">
+        <div class="country-select" id="countries"></div>
+        <div class="input-row">
+            <input type="date" id="raceDate">
+            <input type="text" id="quickCode" placeholder="R1C8 ولا R9 C6" style="text-transform:uppercase;">
+            <button onclick="loadProgramme()">📅 البرنامج</button>
+            <button onclick="quickFetch()">⚡ جلب سريع</button>
+        </div>
+    </div>
+
+    <div id="programmeZone">
+        <div class="loading">🏇 اختار التاريخ + البلد باش تشوف السباقات</div>
+    </div>
+    <div id="outputZone"></div>
+
+    <div class="chat-box">
+        <h3>💬 هضر مع الخبير AI</h3>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input">
+            <input type="text" id="chatQuestion" placeholder="مثال: R1C8 ديال غدا واش فيه طوكار؟">
+            <button onclick="askAI()">سول</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const BACKEND_URL = 'https://turf-expert-backend.onrender.com'; // بدلو من بعد
+const COUNTRIES = [
+    {code: 'MA', name: 'المغرب', flag: '🇲🇦', maxR: 9},
+    {code: 'FR', name: 'فرنسا', flag: '🇫🇷', maxR: 4},
+    {code: 'UK', name: 'انجلترا', flag: '🇬🇧', maxR: 6},
+    {code: 'US', name: 'أمريكا', flag: '🇺🇸', maxR: 12},
+    {code: 'AR', name: 'الأرجنتين', flag: '🇦🇷', maxR: 8},
+    {code: 'ES', name: 'اسبانيا', flag: '🇪🇸', maxR: 6},
+    {code: 'BE', name: 'بلجيكا', flag: '🇧🇪', maxR: 5}
+];
+
+let selectedCountry = 'MA';
+document.getElementById('raceDate').valueAsDate = new Date();
+document.getElementById('todayDate').textContent = new Date().toLocaleDateString('fr-FR', {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'});
+
+function renderCountries() {
+    const div = document.getElementById('countries');
+    div.innerHTML = COUNTRIES.map(c => 
+        `<button class="country-btn ${c.code===selectedCountry?'active':''}" onclick="selectCountry('${c.code}')">
+            ${c.flag} ${c.name}
+        </button>`
+    ).join('');
+}
+
+function selectCountry(code) {
+    selectedCountry = code;
+    renderCountries();
+}
+
+async function loadProgramme() {
+    const date = document.getElementById('raceDate').value;
+    const zone = document.getElementById('programmeZone');
+    document.getElementById('outputZone').innerHTML = '';
+
+    if(!date) {
+        zone.innerHTML = `<div class="error">❌ اختار التاريخ</div>`;
+        return;
+    }
+
+    zone.innerHTML = `<div class="loading">⏳ جاري جلب برنامج ${COUNTRIES.find(c=>c.code===selectedCountry).name} بتاريخ ${date}...</div>`;
+
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/programme/${selectedCountry}?date=${date}`);
+        const data = await response.json();
+        
+        if(data.races && data.races.length > 0) {
+            renderProgramme(data.races, date, data.source);
+        } else {
+            zone.innerHTML = `<div class="error">❌ ${data.msg || 'ما كاينش برنامج'}<br>المصدر: ${data.source || 'غير معروف'}</div>`;
+        }
+    } catch(err) {
+        zone.innerHTML = `<div class="error">❌ السيرفر طافي... رفع Backend على Render عاد</div>`;
+    }
+}
+
+function renderProgramme(races, date, source) {
+    const zone = document.getElementById('programmeZone');
+    
+    let html = `<div style="text-align:center;margin-bottom:15px;color:#FFD700;">المصدر: ${source} | ${races.length} سباق</div><div class="race-list">`;
+    races.forEach(r => {
+        const isQuinte = r.partants >= 16;
+        html += `
+            <div class="race-card ${isQuinte?'quinte':''}" onclick="fetchRace('${r.code}', '${date}')">
+                <div class="race-num ${isQuinte?'quinte':''}">
+                    <div>R${r.code.split('C')[0].substring(1)}</div>
+                    <div>C${r.code.split('C')[1]}</div>
+                </div>
+                <div class="race-info">
+                    <h3>${r.hippodrome} - ${r.name}</h3>
+                    <p>${r.type} | ${r.partants} partants | ${r.distance}m | ${r.time}</p>
+                    <div class="race-tags">
+                        ${r.partants>=16?'<span class="tag quinte">Quinté+</span>':''}
+                        ${r.partants>=14?'<span class="tag quarte">Quarté</span>':''}
+                        ${r.partants>=12?'<span class="tag tierce">Tiercé</span>':''}
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    html += `</div>`;
+    zone.innerHTML = html;
+}
+
+async function quickFetch() {
+    const code = document.getElementById('quickCode').value.trim();
+    const date = document.getElementById('raceDate').value;
+    if(!code) {
+        alert('كتب الكود: R1C8 ولا R9 C6');
+        return;
+    }
+    await fetchRace(code, date);
+}
+
+async function fetchRace(code, date) {
+    const out = document.getElementById('outputZone');
+    document.getElementById('programmeZone').style.display = 'none';
+    out.innerHTML = `<div class="loading">⏳ جاري التحليل المتقدم لـ ${code}...<br>كنجيب الصحافة + المدربين + التاريخ</div>`;
+
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/race/${selectedCountry}/${code}?date=${date}`);
+        const data = await response.json();
+        
+        if(data.error) {
+            out.innerHTML = `<div class="error">❌ ${data.error}<br><button class="back-btn" onclick="backToProgramme()">رجع للبرنامج</button></div>`;
+            return;
+        }
+        renderRaceAdvanced(data, code, date);
+    } catch(err) {
+        out.innerHTML = `<div class="error">❌ السيرفر طافي<br><button class="back-btn" onclick="backToProgramme()">رجع للبرنامج</button></div>`;
+    }
+}
+
+function backToProgramme() {
+    document.getElementById('programmeZone').style.display = 'block';
+    document.getElementById('outputZone').innerHTML = '';
+}
+
+function renderRaceAdvanced(data, code, date) {
+    const out = document.getElementById('outputZone');
+    const horses = data.horses;
+
+    let html = `<button class="back-btn" onclick="backToProgramme()">← رجع للبرنامج</button>`;
+    
+    html += `
+        <div class="ai-brain">
+            <h2>🧠 ${data.hippodrome} - ${code} - ${date}</h2>
+            <h3 style="text-align:center;color:#FFD700;margin-bottom:15px;">${data.raceName} - ${data.distance}m</h3>
+            <div class="ai-grid">
+                <div class="ai-card">
+                    <h3>🎯 نوع الرهان</h3>
+                    <div class="big-text">${data.betType.toUpperCase()}</div>
+                    <div style="text-align:center;font-size:0.9rem;">${horses.length} حصان</div>
+                </div>
+                <div class="ai-card">
+                    <h3>💰 التخمين AI</h3>
+                    <div class="big-text">${data.prediction.join(' - ')}</div>
+                    <div style="text-align:center;font-size:0.9rem;">الثقة: ${data.confidence}/10</div>
+                </div>
+                <div class="ai-card">
+                    <h3>⚠️ الطوكارات</h3>
+                    <div class="big-text">${data.tokars.length}</div>
+                    <div style="text-align:center;font-size:0.9rem;">${data.tokars.length>0?'مفاجآت محتملة':'سباق عادي'}</div>
+                </div>
+            </div>
+            <div style="text-align:center;margin-top:15px;color:#00FF88;">${data.ai_analysis}</div>
+        </div>
+    `;
+
+    // عرض الخيول بالتفصيل
+    horses.forEach(h => {
+        const isTokar = h.odds > 15;
+        const isFavorite = data.favorites.slice(0,1).some(f => f.num === h.num);
+        html += `
+            <div class="horse-detail ${isTokar?'tokar-card':''} ${isFavorite?'favorite-card':''}">
+                <div class="horse-header">
+                    <div class="horse-num-big">${h.num}</div>
+                    <div class="horse-name">
+                        <h3>${h.name} ${isFavorite?'⭐':''} ${isTokar?'💣':''}</h3>
+                        <p>${h.jockey} / ${h.trainer} | ${h.age}ans ${h.sex} | ${h.weight}kg | كوت ${h.odds}</p>
+                    </div>
+                    <div class="ai-score">Score: ${h.ai_score}</div>
+                </div>
+                <div class="horse-body">
+                    <div class="analysis-grid">
+                        <div class="analysis-item">${h.press_note}</div>
+                        <div class="analysis-item">${h.trainer_note}</div>
+                        <div class="analysis-item">${h.form_note}</div>
+                        <div class="analysis-item">${h.weight_note}</div>
+                    </div>
+                    ${h.comment ? `<div class="press-comment">📰 تعليق الصحافة: ${h.comment}</div>` : ''}
+                </div>
+            </div>
+        `;
+    });
+
+    out.innerHTML = html;
+}
+
+async function askAI() {
+    const q = document.getElementById('chatQuestion').value;
+    const date = document.getElementById('raceDate').value;
+    if(!q) return;
+
+    const chatDiv = document.getElementById('chatMessages');
+    chatDiv.innerHTML += `<div class="chat-msg user"><strong>أنت:</strong> ${q}</div>`;
+    document.getElementById('chatQuestion').value = '';
+    chatDiv.scrollTop = chatDiv.scrollHeight;
+
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/chat`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({question: q, country: selectedCountry, date: date})
+        });
+        const data = await response.json();
+        chatDiv.innerHTML += `<div class="chat-msg ai"><strong>🤖 الخبير:</strong><br>${data.answer.replace(/\n/g, '<br>')}</div>`;
+    } catch {
+        chatDiv.innerHTML += `<div class="chat-msg ai"><strong>🤖 الخبير:</strong> السيرفر طافي أ الزعيم</div>`;
+    }
+    chatDiv.scrollTop = chatDiv.scrollHeight;
+}
+
+document.getElementById('chatQuestion').addEventListener('keypress', (e) => {
+    if(e.key === 'Enter') askAI();
+});
+
+renderCountries();
+</script>
+</body>
+</html>
