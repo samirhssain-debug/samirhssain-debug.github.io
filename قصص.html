@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>حكاية AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #FFD700;
+    --orange: #FF8C00;
+    --dark: #0a0a0f;
+    --card: rgba(255,255,255,0.04);
+    --border: rgba(255,215,0,0.2);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Tajawal', sans-serif;
+    background: var(--dark);
+    color: white;
+    min-height: 100vh;
+    padding: 16px;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: -50%;
+    right: -20%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(255,215,0,0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 520px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* HEADER */
+  .header {
+    text-align: center;
+    padding: 28px 20px 20px;
+    margin-bottom: 16px;
+  }
+
+  .logo {
+    font-size: 52px;
+    display: block;
+    margin-bottom: 8px;
+    animation: float 4s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%,100% { transform: translateY(0) rotate(-2deg); }
+    50% { transform: translateY(-12px) rotate(2deg); }
+  }
+
+  .title {
+    font-size: 32px;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--gold), var(--orange));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -1px;
+  }
+
+  .subtitle {
+    color: rgba(255,255,255,0.4);
+    font-size: 13px;
+    margin-top: 6px;
+  }
+
+  /* CARD */
+  .card {
+    background: var(--card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 20px;
+    margin-bottom: 14px;
+  }
+
+  .card-label {
+    font-size: 14px;
+    color: var(--gold);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  textarea {
+    width: 100%;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,215,0,0.2);
+    border-radius: 16px;
+    padding: 14px 16px;
+    color: white;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 16px;
+    resize: none;
+    height: 90px;
+    transition: border-color 0.3s;
+    line-height: 1.6;
+  }
+
+  textarea:focus {
+    outline: none;
+    border-color: var(--gold);
+    background: rgba(0,0,0,0.6);
+  }
+
+  textarea::placeholder { color: rgba(255,255,255,0.25); }
+
+  /* TYPE BUTTONS */
+  .type-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 14px;
+  }
+
+  .type-btn {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,215,0,0.15);
+    border-radius: 12px;
+    padding: 10px 6px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+  }
+
+  .type-btn .emoji { font-size: 20px; display: block; margin-bottom: 3px; }
+
+  .type-btn.active {
+    background: rgba(255,215,0,0.15);
+    border-color: var(--gold);
+    color: var(--gold);
+    transform: scale(1.03);
+  }
+
+  /* GENERATE BUTTON */
+  .gen-btn {
+    width: 100%;
+    padding: 18px;
+    background: linear-gradient(135deg, var(--gold), var(--orange));
+    border: none;
+    border-radius: 18px;
+    font-size: 18px;
+    font-weight: 900;
+    font-family: 'Tajawal', sans-serif;
+    cursor: pointer;
+    transition: all 0.3s;
+    color: #000;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 20px rgba(255,215,0,0.3);
+    margin-bottom: 14px;
+  }
+
+  .gen-btn:hover { transform: scale(1.02); box-shadow: 0 6px 30px rgba(255,215,0,0.4); }
+  .gen-btn:active { transform: scale(0.98); }
+  .gen-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* LOADING */
+  .loading {
+    display: none;
+    text-align: center;
+    padding: 50px 20px;
+  }
+
+  .loading.show { display: block; }
+
+  .loader-ring {
+    width: 60px;
+    height: 60px;
+    border: 3px solid rgba(255,215,0,0.15);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+    margin: 0 auto 16px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-text {
+    font-size: 18px;
+    color: var(--gold);
+    font-weight: 700;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse { 0%,100% { opacity: 0.6; } 50% { opacity: 1; } }
+
+  .loading-sub {
+    font-size: 12px;
+    color: rgba(255,255,255,0.3);
+    margin-top: 6px;
+  }
+
+  /* RESULT */
+  .result-section { display: none; }
+  .result-section.show { display: block; }
+
+  /* IMAGE */
+  .story-image {
+    width: 100%;
+    border-radius: 18px;
+    object-fit: cover;
+    height: 220px;
+    border: 1px solid var(--border);
+    display: block;
+    margin-bottom: 16px;
+    background: rgba(0,0,0,0.3);
+  }
+
+  .image-loading {
+    width: 100%;
+    height: 220px;
+    border-radius: 18px;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.3);
+    margin-bottom: 16px;
+    font-size: 30px;
+    flex-direction: column;
+    gap: 8px;
+    color: rgba(255,255,255,0.3);
+    font-size: 13px;
+  }
+
+  /* STORY TEXT */
+  .story-title {
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--gold);
+    margin-bottom: 12px;
+    line-height: 1.4;
+  }
+
+  .story-body {
+    font-size: 16px;
+    line-height: 2;
+    color: rgba(255,255,255,0.85);
+    background: rgba(0,0,0,0.25);
+    border-radius: 16px;
+    padding: 16px;
+    border-right: 3px solid var(--gold);
+  }
+
+  /* AUDIO CONTROLS */
+  .audio-controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .audio-btn {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    border-radius: 14px;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s;
+  }
+
+  .play-btn {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: white;
+  }
+
+  .play-btn:hover { transform: scale(1.03); }
+
+  .stop-btn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.7);
+  }
+
+  /* RESET */
+  .reset-btn {
+    width: 100%;
+    padding: 14px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 14px;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 15px;
+    color: rgba(255,255,255,0.5);
+    cursor: pointer;
+    margin-top: 12px;
+    transition: all 0.25s;
+  }
+
+  .reset-btn:hover {
+    background: rgba(255,255,255,0.05);
+    color: white;
+    border-color: rgba(255,255,255,0.3);
+  }
+
+  /* ERROR */
+  .error-box {
+    background: rgba(255,50,50,0.1);
+    border: 1px solid rgba(255,50,50,0.3);
+    border-radius: 16px;
+    padding: 16px;
+    color: #ff8888;
+    font-size: 14px;
+    display: none;
+    margin-bottom: 14px;
+    line-height: 1.7;
+  }
+
+  .error-box.show { display: block; }
+
+  /* FOOTER */
+  .footer {
+    text-align: center;
+    padding: 20px;
+    color: rgba(255,255,255,0.2);
+    font-size: 11px;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <span class="logo">🌙✨</span>
+    <div class="title">حكاية AI</div>
+    <div class="subtitle">ولّد قصة + صورة + صوت بالمجان</div>
+  </div>
+
+  <!-- INPUT SECTION -->
+  <div id="inputSection">
+    <div class="card">
+      <div class="card-label">✍️ شنو الفكرة ديال القصة؟</div>
+      <textarea id="ideaInput" placeholder="مثال: قصة حب بين قرد ومعزة في الغابة..."></textarea>
+
+      <div class="type-grid">
+        <div class="type-btn active" onclick="selectType(this, 'story')">
+          <span class="emoji">📖</span>قصة عادية
+        </div>
+        <div class="type-btn" onclick="selectType(this, 'kids')">
+          <span class="emoji">🧒</span>أطفال
+        </div>
+        <div class="type-btn" onclick="selectType(this, 'funny')">
+          <span class="emoji">😂</span>مضحكة
+        </div>
+      </div>
+    </div>
+
+    <div class="error-box" id="errorBox"></div>
+
+    <button class="gen-btn" onclick="generateStory()">
+      🪄 ولّد القصة
+    </button>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading" id="loading">
+    <div class="loader-ring"></div>
+    <div class="loading-text" id="loadingText">كنكتب القصة... ✍️</div>
+    <div class="loading-sub" id="loadingSub">بعض ثواني...</div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="result-section" id="resultSection">
+    <div class="card">
+
+      <div id="imageContainer">
+        <div class="image-loading" id="imageLoading">
+          <span style="font-size:30px">🎨</span>
+          كنولّد الصورة...
+        </div>
+        <img id="storyImage" class="story-image" style="display:none" alt="صورة القصة">
+      </div>
+
+      <div class="story-title" id="storyTitle"></div>
+      <div class="story-body" id="storyBody"></div>
+
+      <div class="audio-controls">
+        <button class="audio-btn play-btn" onclick="speakStory()">🔊 سماع القصة</button>
+        <button class="audio-btn stop-btn" onclick="stopSpeech()">⏹ إيقاف</button>
+      </div>
+    </div>
+
+    <button class="reset-btn" onclick="reset()">🔄 قصة جديدة</button>
+  </div>
+
+  <div class="footer">Powered by Gemini AI + Pollinations.ai</div>
+</div>
+
+<script>
+const API_KEY = 'AIzaSyDgygfE8FA7QAed9o8YSB2_NYPOE1oKdS8';
+let currentType = 'story';
+let currentStoryText = '';
+let isSpeaking = false;
+
+function selectType(el, type) {
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  currentType = type;
+}
+
+function setLoading(text, sub) {
+  document.getElementById('loadingText').textContent = text;
+  document.getElementById('loadingSub').textContent = sub || '';
+}
+
+async function generateStory() {
+  const idea = document.getElementById('ideaInput').value.trim();
+  if (!idea) {
+    showError('⚠️ كتب الفكرة ديالك أولاً!');
+    return;
+  }
+
+  hideError();
+  document.getElementById('inputSection').style.display = 'none';
+  document.getElementById('resultSection').classList.remove('show');
+  document.getElementById('loading').classList.add('show');
+
+  setLoading('كنكتب القصة... ✍️', 'Gemini AI كيكتب ليك...');
+
+  const typePrompts = {
+    story: 'قصة قصيرة وجميلة باللغة العربية الفصحى',
+    kids: 'قصة أطفال قصيرة وممتعة باللغة العربية البسيطة مناسبة للأطفال',
+    funny: 'قصة مضحكة وفكاهية قصيرة باللغة العربية'
+  };
+
+  const prompt = `اكتب ${typePrompts[currentType]} عن الفكرة التالية: "${idea}"
+
+القواعد:
+- ابدأ بعنوان جذاب على سطر وحده مسبوقاً بـ [عنوان]
+- ثم اكتب القصة في فقرتين أو ثلاث (150-200 كلمة)
+- اجعلها مشوقة مع نهاية جميلة
+- لا تكتب أي تفسيرات، فقط القصة مباشرة`;
+
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.9, maxOutputTokens: 800 }
+        })
+      }
+    );
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error?.message || 'خطأ في API');
+    }
+
+    const data = await response.json();
+    const fullText = data.candidates[0].content.parts[0].text.trim();
+
+    // استخراج العنوان والنص
+    let title = idea;
+    let body = fullText;
+
+    const titleMatch = fullText.match(/\[عنوان\]\s*(.+)/);
+    if (titleMatch) {
+      title = titleMatch[1].trim();
+      body = fullText.replace(/\[عنوان\]\s*.+\n?/, '').trim();
+    }
+
+    currentStoryText = title + '. ' + body;
+
+    document.getElementById('storyTitle').textContent = title;
+    document.getElementById('storyBody').textContent = body;
+
+    // توليد الصورة
+    setLoading('كنولّد الصورة... 🎨', 'Pollinations.ai كيرسم...');
+    generateImage(idea, title);
+
+    document.getElementById('loading').classList.remove('show');
+    document.getElementById('resultSection').classList.add('show');
+
+  } catch (err) {
+    document.getElementById('loading').classList.remove('show');
+    document.getElementById('inputSection').style.display = 'block';
+    showError('❌ وقع خطأ: ' + err.message + '\n\nتحقق من اتصال الإنترنت وحاول مرة أخرى.');
+  }
+}
+
+function generateImage(idea, title) {
+  const imageEl = document.getElementById('storyImage');
+  const loadingEl = document.getElementById('imageLoading');
+
+  // بناء prompt للصورة
+  const imgPrompt = encodeURIComponent(
+    `${idea}, ${title}, illustration, colorful, arabic style, fantasy, beautiful, detailed`
+  );
+
+  const imageUrl = `https://image.pollinations.ai/prompt/${imgPrompt}?width=600&height=400&nologo=true&seed=${Date.now()}`;
+
+  imageEl.onload = () => {
+    loadingEl.style.display = 'none';
+    imageEl.style.display = 'block';
+  };
+
+  imageEl.onerror = () => {
+    loadingEl.innerHTML = '<span style="font-size:40px">🖼️</span><span>الصورة مش متاحة الآن</span>';
+  };
+
+  imageEl.src = imageUrl;
+}
+
+function speakStory() {
+  if (!currentStoryText) return;
+  window.speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(currentStoryText);
+  utterance.lang = 'ar';
+  utterance.rate = 0.85;
+  utterance.pitch = 1;
+  utterance.volume = 1;
+
+  const voices = window.speechSynthesis.getVoices();
+  const arabicVoice = voices.find(v => v.lang.startsWith('ar'));
+  if (arabicVoice) utterance.voice = arabicVoice;
+
+  utterance.onend = () => {
+    document.querySelector('.play-btn').textContent = '🔊 سماع القصة';
+  };
+
+  window.speechSynthesis.speak(utterance);
+  document.querySelector('.play-btn').textContent = '🔊 جاري التشغيل...';
+}
+
+function stopSpeech() {
+  window.speechSynthesis.cancel();
+  document.querySelector('.play-btn').textContent = '🔊 سماع القصة';
+}
+
+function reset() {
+  stopSpeech();
+  currentStoryText = '';
+  document.getElementById('storyImage').style.display = 'none';
+  document.getElementById('storyImage').src = '';
+  document.getElementById('imageLoading').style.display = 'flex';
+  document.getElementById('imageLoading').innerHTML = '<span style="font-size:30px">🎨</span>كنولّد الصورة...';
+  document.getElementById('resultSection').classList.remove('show');
+  document.getElementById('inputSection').style.display = 'block';
+  document.getElementById('ideaInput').value = '';
+  hideError();
+}
+
+function showError(msg) {
+  const box = document.getElementById('errorBox');
+  box.textContent = msg;
+  box.classList.add('show');
+}
+
+function hideError() {
+  document.getElementById('errorBox').classList.remove('show');
+}
+
+window.speechSynthesis.getVoices();
+</script>
+</body>
+</html>
