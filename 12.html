@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Sukoon Masjid</title>
 
 <style>
@@ -15,38 +16,29 @@ font-family:Tahoma,sans-serif;
 }
 
 body{
-height:100vh;
-background:
-linear-gradient(rgba(0,20,40,.65),rgba(0,20,40,.65)),
-url('https://images.unsplash.com/photo-1564769625905-50e93615e769?q=80&w=1600');
-background-size:cover;
-background-position:center;
-color:#fff;
-overflow:hidden;
-}
-
-.dashboard{
-height:100vh;
-display:flex;
-flex-direction:column;
-padding:20px;
-gap:15px;
-}
-
-/* HEADER */
-
-.header{
-display:grid;
-grid-template-columns:1fr 1.2fr 1fr;
-gap:15px;
+background:#0b1320;
+color:white;
+padding:10px;
 }
 
 .card{
-background:rgba(0,0,0,.35);
-backdrop-filter:blur(8px);
-border:1px solid rgba(255,255,255,.15);
-border-radius:20px;
+background:#162235;
+border-radius:15px;
 padding:15px;
+margin-bottom:10px;
+}
+
+.mosque{
+text-align:center;
+}
+
+.mosque h1{
+font-size:28px;
+}
+
+.mosque p{
+font-size:18px;
+opacity:.8;
 }
 
 .clock{
@@ -54,124 +46,75 @@ text-align:center;
 }
 
 .time{
-font-size:clamp(40px,6vw,90px);
+font-size:55px;
 font-weight:bold;
 }
 
 .date{
-font-size:clamp(14px,1.5vw,24px);
-margin-top:10px;
-}
-
-.mosque{
-display:flex;
-flex-direction:column;
-justify-content:center;
-align-items:center;
-text-align:center;
-}
-
-.mosque h1{
-font-size:clamp(24px,3vw,48px);
-}
-
-.mosque p{
-opacity:.8;
-margin-top:8px;
-}
-
-.next{
-text-align:center;
-}
-
-.next-title{
-font-size:22px;
-margin-bottom:10px;
+font-size:18px;
+margin-top:5px;
 }
 
 .next-prayer{
+text-align:center;
+background:#0f3d2e;
+}
+
+.next-prayer .title{
+font-size:22px;
+}
+
+.next-prayer .name{
+font-size:50px;
+font-weight:bold;
+margin:10px 0;
+}
+
+.next-prayer .countdown{
 font-size:55px;
 font-weight:bold;
 color:#ffd54f;
 }
 
-.countdown{
-font-size:60px;
-font-weight:bold;
+.prayer{
+display:flex;
+justify-content:space-between;
+align-items:center;
+font-size:28px;
+}
+
+.prayer + .prayer{
 margin-top:10px;
 }
 
-/* PRAYERS */
-
-.prayers{
-display:grid;
-grid-template-columns:repeat(5,1fr);
-gap:15px;
-flex:1;
-}
-
-.prayer{
-background:rgba(0,0,0,.40);
-border-radius:25px;
-display:flex;
-flex-direction:column;
-justify-content:center;
-align-items:center;
-padding:20px;
-}
-
-.prayer.active{
-background:#16a34a;
-}
-
-.prayer-name{
-font-size:clamp(24px,2vw,40px);
-margin-bottom:15px;
-}
-
-.prayer-time{
-font-size:clamp(36px,4vw,70px);
-font-weight:bold;
-}
-
-/* VERSE */
-
-.verse{
-background:#f7f1df;
-color:#111;
-border-radius:20px;
-padding:20px;
+.ayah{
 text-align:center;
+font-size:24px;
+line-height:1.8;
 }
-
-.verse-title{
-font-size:20px;
-margin-bottom:15px;
-color:#0c4a6e;
-}
-
-.verse-text{
-font-size:clamp(22px,2.3vw,42px);
-line-height:2;
-}
-
-/* HADITH */
 
 .hadith{
-background:rgba(0,0,0,.55);
-border-radius:20px;
-padding:15px;
 text-align:center;
-font-size:clamp(18px,1.8vw,30px);
+font-size:22px;
+line-height:1.8;
+}
+
+.active{
+background:#1d6f42;
 }
 
 </style>
 </head>
 <body>
 
-<div class="dashboard">
+<!-- المسجد -->
 
-<div class="header">
+<div class="card mosque">
+<h1>🕌 مسجد مولاي بوعرفة</h1>
+<p>الناظور - المغرب</p>
+</div>
+
+<!-- الساعة -->
 
 <div class="card clock">
 <div class="time">20:37</div>
@@ -179,60 +122,72 @@ font-size:clamp(18px,1.8vw,30px);
 <div class="date">13 ربيع الآخر 1448 هـ</div>
 </div>
 
-<div class="card mosque">
-<h1>مسجد مولاي بوعرفة</h1>
-<p>الناظور - المغرب</p>
+<!-- الصلاة القادمة -->
+
+<div class="card next-prayer">
+
+<div class="title">
+الصلاة القادمة
 </div>
 
-<div class="card next">
-<div class="next-title">الصلاة القادمة</div>
-<div class="next-prayer">العشاء</div>
-<div class="countdown">00:47:09</div>
+<div class="name">
+العشاء
+</div>
+
+<div class="countdown">
+00:47:09
 </div>
 
 </div>
 
-<div class="prayers">
+<!-- الصلوات -->
+
+<div class="card">
 
 <div class="prayer">
-<div class="prayer-name">الفجر</div>
-<div class="prayer-time">04:31</div>
-</div>
-
-<div class="prayer">
-<div class="prayer-name">الظهر</div>
-<div class="prayer-time">12:09</div>
-</div>
-
-<div class="prayer">
-<div class="prayer-name">العصر</div>
-<div class="prayer-time">15:31</div>
+<span>الفجر</span>
+<span>04:31</span>
 </div>
 
 <div class="prayer">
-<div class="prayer-name">المغرب</div>
-<div class="prayer-time">18:11</div>
+<span>الظهر</span>
+<span>12:09</span>
+</div>
+
+<div class="prayer">
+<span>العصر</span>
+<span>15:31</span>
+</div>
+
+<div class="prayer">
+<span>المغرب</span>
+<span>18:11</span>
 </div>
 
 <div class="prayer active">
-<div class="prayer-name">العشاء</div>
-<div class="prayer-time">19:25</div>
+<span>العشاء</span>
+<span>19:25</span>
 </div>
 
 </div>
 
-<div class="verse">
-<div class="verse-title">آية قرآنية</div>
+<!-- الآية -->
 
-<div class="verse-text">
-﴿ فَاذْكُرُونِي أَذْكُرْكُمْ وَاشْكُرُوا لِي وَلَا تَكْفُرُونِ ﴾
+<div class="card ayah">
+
+﴿ فَاذْكُرُونِي أَذْكُرْكُمْ
+وَاشْكُرُوا لِي
+وَلَا تَكْفُرُونِ ﴾
+
 </div>
 
-</div>
+<!-- الحديث -->
 
-<div class="hadith">
-قال رسول الله ﷺ : « من دل على خير فله مثل أجر فاعله »
-</div>
+<div class="card hadith">
+
+قال رسول الله ﷺ :
+
+« من دل على خير فله مثل أجر فاعله »
 
 </div>
 
